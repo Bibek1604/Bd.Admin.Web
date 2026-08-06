@@ -1,0 +1,17 @@
+
+> my-react-app@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v8.0.5 [32mbuilding client environment for production...[36m[39m
+[2Ktransforming...✓ 2790 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                           1.32 kB │ gzip:   0.63 kB
+dist/assets/index-Bxernynj.css           77.08 kB │ gzip:  12.75 kB
+dist/assets/AdminLoginPage-DRVykV8s.js    9.15 kB │ gzip:   3.25 kB
+dist/assets/jsx-runtime-DqXTzsMr.js      46.52 kB │ gzip:  17.97 kB
+dist/assets/Input-ClkZGlpi.js           126.50 kB │ gzip:  41.59 kB
+dist/assets/index-ClpwjyHf.js           222.44 kB │ gzip:  71.30 kB
+dist/assets/Dashboard-DiZ52eGV.js       473.64 kB │ gzip: 124.73 kB
+
+[32m✓ built in 2.14s[39m

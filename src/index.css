@@ -1,0 +1,288 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+
+  /* Brand Colors - Primary Green */
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-200: #bbf7d0;
+  --color-brand-300: #86efac;
+  --color-brand-400: #4ade80;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  --color-brand-800: #166534;
+  --color-brand-900: #145231;
+
+  /* Surface Colors - Neutral */
+  --color-surface-50: #f9fafb;
+  --color-surface-100: #f3f4f6;
+  --color-surface-150: #eff0f3;
+  --color-surface-200: #e5e7eb;
+  --color-surface-300: #d1d5db;
+  --color-surface-400: #9ca3b7;
+  --color-surface-500: #6b7280;
+  --color-surface-600: #4b5563;
+  --color-surface-700: #374151;
+  --color-surface-800: #1f2937;
+  --color-surface-900: #111827;
+
+  /* Semantic Colors */
+  --color-success-light: #dcfce7;
+  --color-success: #22c55e;
+  --color-success-dark: #15803d;
+
+  --color-error-light: #fee2e2;
+  --color-error: #ef4444;
+  --color-error-dark: #991b1b;
+
+  --color-warning-light: #fef3c7;
+  --color-warning: #f59e0b;
+  --color-warning-dark: #92400e;
+
+  --color-info-light: #dbeafe;
+  --color-info: #3b82f6;
+  --color-info-dark: #1e3a8a;
+}
+
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-surface-50);
+  color: #111827;
+
+  /* CSS Variables for easy theming */
+  --primary-color: var(--color-brand-500);
+  --primary-hover: var(--color-brand-600);
+  --background: var(--color-surface-50);
+  --surface: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: var(--color-surface-200);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Poppins', var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-surface-50);
+  color: var(--text-primary);
+}
+
+/* Typography Utilities */
+.text-display-lg {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 44px;
+  letter-spacing: -0.02em;
+}
+
+.text-display-md {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+  letter-spacing: -0.02em;
+}
+
+.text-h1 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+.text-h2 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.text-h3 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+}
+
+.text-label-lg {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-transform: capitalize;
+}
+
+/* Matte Glassmorphism */
+.matte-glass {
+  background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.matte-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.matte-shadow-md {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  50%  { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-in-out;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.3s ease-out;
+}
+
+.animate-slide-in-down {
+  animation: slide-in-down 0.3s ease-out;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s infinite;
+}
+
+/* Utility Classes */
+.truncate-lines {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.transition-smooth {
+  transition: all 0.2s ease-in-out;
+}
+
+.focus-ring {
+  outline: none;
+  ring: 4px;
+  ring-color: rgb(34 197 94 / 0.2);
+  border-color: rgb(34 197 94);
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(34 197 94 / 0.2);
+  border-color: var(--color-brand-500);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-50);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-200);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-200);
+}
+
+/* Hidden scrollbar that appears on hover */
+.clean-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.clean-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.clean-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.clean-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.clean-scrollbar:hover {
+  scrollbar-color: var(--color-surface-300) transparent;
+}
+
+.clean-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: var(--color-surface-300);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.auth-pattern-overlay {
+  background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+
+/* ── Modal (AppModal) ──────────────────────────────────────────── */
+@keyframes modal-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modal-panel-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-modal-backdrop {
+  animation: modal-backdrop-in 0.15s ease-out;
+}
+.animate-modal-panel {
+  animation: modal-panel-in 0.18s ease-out;
+}
+/* Soft scrollbar used inside modal bodies */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-200) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-surface-200);
+  border-radius: 10px;
+}
+
+:root { --admin-sidebar-w: 18rem; }
