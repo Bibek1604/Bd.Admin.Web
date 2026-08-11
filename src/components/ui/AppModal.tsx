@@ -53,13 +53,13 @@ const AppModal: React.FC<AppModalProps> = ({
 
       {/* Panel */}
       <div
-        className={`relative flex w-full ${maxWidth} max-h-[88vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 animate-modal-panel`}
+        className={`relative flex w-full ${maxWidth} max-h-[88vh] flex-col overflow-hidden rounded-[var(--radius-panel)] bg-white shadow-[0_16px_48px_-12px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 animate-modal-panel`}
       >
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between gap-4 px-6 pt-5 pb-3">
           <div className="min-w-0">
-            <h2 className="truncate text-lg font-bold tracking-tight text-slate-800">{title}</h2>
-            {subtitle && <p className="mt-0.5 truncate text-xs font-medium text-slate-400">{subtitle}</p>}
+            <h2 className="truncate text-base font-semibold text-slate-900">{title}</h2>
+            {subtitle && <p className="mt-0.5 truncate text-[13px] text-slate-500">{subtitle}</p>}
           </div>
           <button
             type="button"
@@ -83,13 +83,13 @@ const AppModal: React.FC<AppModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="flex shrink-0 flex-col-reverse gap-3 px-6 pt-3 pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-2 flex shrink-0 flex-col-reverse gap-3 border-t border-surface-200 px-6 pt-4 pb-5 sm:flex-row sm:items-center sm:justify-between">
             {footer ? <div className="hidden sm:block">{footer}</div> : <span className="hidden sm:block" />}
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:w-auto"
+                className="h-10 w-full rounded-[var(--radius-control)] border border-surface-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-50 sm:w-auto"
               >
                 {mode === 'details' ? 'Close' : 'Cancel'}
               </button>
@@ -97,7 +97,7 @@ const AppModal: React.FC<AppModalProps> = ({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-70 sm:w-auto"
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand-600 px-5 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-60 sm:w-auto"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
@@ -122,14 +122,16 @@ const AppModal: React.FC<AppModalProps> = ({
 
 export const ModalField: React.FC<{ label: string; children: React.ReactNode; fullWidth?: boolean; icon?: React.ReactNode; error?: string; required?: boolean }> = ({ label, children, fullWidth, icon, error, required }) => (
   <div className={`flex flex-col ${fullWidth ? 'col-span-full' : ''}`}>
-    <label className="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+    {/* Sentence case at 13px/500 — the old uppercase 10px/900 labels were
+        louder than the values they described. */}
+    <label className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-slate-700">
       {icon}
       {label}
-      {required && <span className="text-xs leading-none text-rose-500">*</span>}
+      {required && <span className="leading-none text-rose-500">*</span>}
     </label>
     {children}
     {error && (
-      <p className="mt-1.5 flex items-center gap-1 text-xs font-medium tracking-tight text-rose-600">
+      <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-600">
         <AlertCircle size={12} /> {error}
       </p>
     )}
@@ -137,20 +139,16 @@ export const ModalField: React.FC<{ label: string; children: React.ReactNode; fu
 );
 
 export const DetailRow: React.FC<{ label: string; value?: React.ReactNode; icon?: React.ReactNode; accent?: string }> = ({ label, value }) => (
-  <div className="flex flex-col border-b border-slate-100 py-3 last:border-b-0">
-    <div className="mb-0.5 text-[12px] font-medium text-slate-500">{label}</div>
-    <div className="text-sm font-semibold text-slate-800">{value || <span className="italic text-slate-300">Not provided</span>}</div>
+  <div className="flex flex-col gap-0.5 border-b border-surface-200 py-3 last:border-b-0 sm:flex-row sm:items-baseline sm:gap-4">
+    <div className="text-[13px] text-slate-500 sm:w-44 sm:shrink-0">{label}</div>
+    <div className="text-sm text-slate-800">{value || <span className="text-slate-400">Not provided</span>}</div>
   </div>
 );
 
 export const DetailGroup: React.FC<{ title?: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="mb-6 last:mb-0">
-    {title && (
-      <div className="mb-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">{title}</div>
-    )}
-    <div className="space-y-1">
-      {children}
-    </div>
+    {title && <div className="mb-1 text-[13px] font-medium text-slate-900">{title}</div>}
+    <div>{children}</div>
   </div>
 );
 
@@ -162,7 +160,7 @@ export const ModalInput: React.FC<ModalInputProps> = ({ error, className, type, 
   const ac = autoComplete ?? (isPassword ? 'new-password' : 'off');
   const noMax = ['number', 'date', 'time', 'datetime-local', 'month', 'week', 'color', 'range', 'file', 'checkbox', 'radio', 'url'].includes(type || '');
   const max = maxLength ?? (noMax ? undefined : 256);
-  const cls = `w-full rounded-xl border bg-surface-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${isPassword ? 'pr-11' : ''} ${className || ''}`;
+  const cls = `w-full rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${isPassword ? 'pr-11' : ''} ${className || ''}`;
   if (!isPassword) return <input {...props} type={resolvedType} autoComplete={ac} maxLength={max} className={cls} />;
   return (
     <div className="relative">
@@ -185,7 +183,7 @@ export const ModalSelect: React.FC<ModalSelectProps> = ({ children, error, class
   <select
     {...props}
     title={props.title || props['aria-label'] || 'Select option'}
-    className={`w-full rounded-xl border bg-surface-50 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-all focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${className || ''}`}
+    className={`w-full rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:bg-white disabled:cursor-not-allowed disabled:bg-surface-100 disabled:text-slate-400 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${className || ''}`}
   >
     {children}
   </select>
@@ -196,7 +194,7 @@ export const ModalTextarea: React.FC<ModalTextareaProps> = ({ error, className, 
   <textarea
     {...props}
     maxLength={maxLength ?? 5000}
-    className={`w-full resize-none rounded-xl border bg-surface-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${className || ''}`}
+    className={`w-full resize-none rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${className || ''}`}
   />
 );
 

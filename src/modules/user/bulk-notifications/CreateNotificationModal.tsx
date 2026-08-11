@@ -63,54 +63,54 @@ const CreateNotificationModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }
 
   return (
     <AppModal
-      isOpen={isOpen} onClose={onClose} title="Dispatch Notification"
-      subtitle="Broadcast a message to users across your network"
+      isOpen={isOpen} onClose={onClose} title="New notification"
+      subtitle="Send a message to your agents."
       accentColor="sky" mode="create" onSubmit={handleSubmit}
-      loading={loading} submitLabel="Send Broadcast"
+      loading={loading} submitLabel="Send"
       footer={<div className="flex items-center gap-2 text-xs font-bold text-slate-400"><Bell size={14} /> Communications System</div>}
       maxWidth="max-w-xl"
     >
       {error && (
-        <div className="mb-5 flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-600">
+        <div className="mb-5 rounded-[var(--radius-control)] border border-rose-200 bg-rose-50 px-3 py-2.5 text-[13px] text-rose-700">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-rose-100">!</span>
           <span>{error}</span>
         </div>
       )}
       <ModalGrid cols={1}>
-        <ModalField label="Target Audience">
+        <ModalField label="Audience">
           <select
             value={targetType}
             onChange={e => setTargetType(e.target.value as 'all' | 'single')}
-            title="Target Audience"
-            aria-label="Target Audience"
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none font-medium text-sm text-slate-700 focus:border-brand-500 transition-all disabled:bg-slate-50 disabled:cursor-not-allowed"
+            title="Audience"
+            aria-label="Audience"
+            className="w-full rounded-[var(--radius-control)] border border-surface-200 bg-surface-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-brand-500 focus:bg-white"
           >
-            <option value="all">All Users (Network-wide)</option>
-            <option value="single">Select Single User</option>
+            <option value="all">All agents</option>
+            <option value="single">A single agent</option>
           </select>
         </ModalField>
         {targetType === 'single' && (
-          <ModalField label="Select User" required error={fieldErrors.selectedAgentId}>
+          <ModalField label="Agent" required error={fieldErrors.selectedAgentId}>
             <select
               value={selectedAgentId}
               onChange={e => setSelectedAgentId(e.target.value)}
               required
-              title="Select User"
-              aria-label="Select User"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 outline-none font-medium text-sm text-slate-700 focus:border-brand-500 transition-all disabled:bg-slate-50 disabled:cursor-not-allowed"
+              title="Agent"
+              aria-label="Agent"
+              className="w-full rounded-[var(--radius-control)] border border-surface-200 bg-surface-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-brand-500 focus:bg-white"
             >
-              <option value="">-- Choose User --</option>
+              <option value="">Select an agent</option>
               {agents.map(a => (
-                <option key={a.id} value={String(a.id)}>{a.first_name} {a.last_name} ({a.username}) - {a.role || 'User'}</option>
+                <option key={a.id} value={String(a.id)}>{a.first_name} {a.last_name} (@{a.username})</option>
               ))}
             </select>
           </ModalField>
         )}
-        <ModalField label="Notification Title" required error={fieldErrors.title}>
-          <ModalInput required error={!!fieldErrors.title} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Monthly Performance Update" />
+        <ModalField label="Title" required error={fieldErrors.title}>
+          <ModalInput required error={!!fieldErrors.title} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Monthly performance update" />
         </ModalField>
-        <ModalField label="Message Content" required error={fieldErrors.content}>
-          <ModalTextarea required error={!!fieldErrors.content} rows={4} value={content} onChange={e => setContent(e.target.value)} placeholder="Type your official message here..." />
+        <ModalField label="Message" required error={fieldErrors.content}>
+          <ModalTextarea required error={!!fieldErrors.content} rows={4} value={content} onChange={e => setContent(e.target.value)} placeholder="Write your message…" />
         </ModalField>
       </ModalGrid>
     </AppModal>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Phone, Mail, Award, Star, Hash, Lock, Building2 } from 'lucide-react';
 import type { Agent } from './agentsService';
 import companyService, { type Company } from '../companies/companyService';
 import AppModal, { ModalField, ModalGrid, ModalInput, ModalSelect, DetailRow, DetailGroup } from '../../../components/ui/AppModal';
@@ -25,7 +24,10 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
   // Load companies for the required "associated company" selector
   useEffect(() => {
     if (!isOpen || mode === 'details') return;
-    companyService.getCompanies({ limit: 1000 } as any)
+    // No page/limit: the list endpoint returns everything when pagination is
+    // not requested. Asking for limit:1000 opted INTO pagination and the server
+    // capped it at 100, silently hiding companies past the 100th.
+    companyService.getCompanies()
       .then((res: any) => {
         const list = Array.isArray(res) ? res : (res?.results ?? []);
         setCompanies(list.filter((c: any) => String(c.status).toUpperCase() !== 'INACTIVE'));
@@ -88,89 +90,72 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
     }
   };
 
-  const title = mode === 'create' ? 'Onboard New Agent' : mode === 'edit' ? 'Update Agent Credentials' : 'Agent Dossier';
-  const score = agent?.agent_profile?.performance_score ?? 0;
+  const title = mode === 'create' ? 'New agent' : mode === 'edit' ? 'Edit agent' : 'Agent details';
 
   return (
     <AppModal
       isOpen={isOpen} onClose={onClose} title={title}
-      subtitle="Certified Field Operative / LIC Personnel Department"
+      subtitle={mode === 'create' ? 'Create a login for a field agent.' : undefined}
       accentColor="brand" mode={mode} onSubmit={handleSubmit}
-      loading={loading} submitLabel={mode === 'create' ? 'Register Agent' : 'Save Changes'}
-      footer={
-        mode === 'details' && agent ? (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 ${agent.is_active ? 'bg-green-50 text-green-700 border-green-100' : 'bg-surface-100 text-slate-500 border-surface-200'}`}>
-              <Shield size={10} /> {agent.is_active ? 'Active Service' : 'Deactivated'}
-            </span>
-            {score >= 80 && (
-              <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border bg-indigo-50 text-indigo-700 border-indigo-100 flex items-center gap-1.5">
-                <Star size={10} /> Elite Status
-              </span>
-            )}
-          </div>
-        ) : (
-          <div className="text-xs font-bold text-slate-400 flex items-center gap-2"><User size={13} /> Agent Registry</div>
-        )
-      }
+      loading={loading} submitLabel={mode === 'create' ? 'Create agent' : 'Save changes'}
     >
       {error && mode !== 'details' && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-xs font-bold flex items-center gap-3">
-          <div className="w-6 h-6 rounded-lg bg-rose-100 flex items-center justify-center shrink-0">!</div>
+        <div className="mb-5 rounded-[var(--radius-control)] border border-rose-200 bg-rose-50 px-3 py-2.5 text-[13px] text-rose-700">
           {error}
         </div>
       )}
       {mode === 'details' && agent ? (
-        <>
-          {/* Performance Banner */}
-          <div className="mb-6 p-5 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl text-white flex items-center justify-between shadow-lg shadow-green-200">
-            <div>
-              <div className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">Performance Score</div>
-              <div className="text-4xl font-black">{score}<span className="text-2xl opacity-70">%</span></div>
+        <div className="pt-1">
+          <div className="mb-6 flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-100 text-sm font-medium text-slate-600">
+              {`${agent.first_name?.[0] ?? ''}${agent.last_name?.[0] ?? ''}`.toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <div className="truncate font-medium text-slate-900">{agent.first_name} {agent.last_name}</div>
+              <div className="truncate text-[13px] text-slate-500">{agent.email}</div>
             </div>
-            <div className="text-right">
-              <div className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">Policies Sold</div>
-              <div className="text-4xl font-black">#{agent.num_clients}</div>
-            </div>
+            <span className={`ml-auto shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${agent.is_active ? 'bg-brand-50 text-brand-700' : 'bg-surface-100 text-slate-600'}`}>
+              {agent.is_active ? 'Active' : 'Inactive'}
+            </span>
           </div>
 
-          <DetailGroup title="Personal Details">
-            <DetailRow label="Full Name" value={`${agent.first_name} ${agent.last_name}`} icon={<User size={15} />} accent="bg-green-50 text-green-600" />
-            <DetailRow label="Username / HQ-ID" value={`@${agent.username}`} icon={<Hash size={15} />} accent="bg-surface-100 text-slate-500" />
+          <DetailGroup title="Account">
+            <DetailRow label="Username" value={agent.username} />
+            <DetailRow label="Company" value={agent.company_name || 'Unassigned'} />
+            <DetailRow label="Clients" value={String(agent.num_clients ?? 0)} />
           </DetailGroup>
-          <DetailGroup title="Contact Information">
-            <DetailRow label="Email" value={<a href={`mailto:${agent.email}`} className="text-blue-600 hover:underline">{agent.email}</a>} icon={<Mail size={15} />} accent="bg-blue-50 text-blue-500" />
-            <DetailRow label="Phone" value={agent.phone_number || '—'} icon={<Phone size={15} />} accent="bg-violet-50 text-violet-500" />
-            <DetailRow label="Associated Company" value={agent.company_name || 'Unassigned'} icon={<Building2 size={15} />} accent="bg-amber-50 text-amber-600" />
+          <DetailGroup title="Contact">
+            <DetailRow label="Email" value={<a href={`mailto:${agent.email}`} className="text-brand-700 hover:underline">{agent.email}</a>} />
+            <DetailRow label="Phone" value={agent.phone_number} />
           </DetailGroup>
-          <DetailGroup title="Credentials & Certifications">
-            <DetailRow label="License Number" value={agent.agent_profile?.license_number || 'PENDING'} icon={<Shield size={15} />} accent="bg-green-50 text-green-600" />
-            <DetailRow label="Specialization" value={agent.agent_profile?.specialization || 'Certified Generalist'} icon={<Award size={15} />} accent="bg-amber-50 text-amber-600" />
+          <DetailGroup title="Credentials">
+            <DetailRow label="License number" value={agent.agent_profile?.license_number} />
+            <DetailRow label="Specialisation" value={agent.agent_profile?.specialization} />
           </DetailGroup>
-        </>
+        </div>
       ) : (
         <ModalGrid>
-          <ModalField label="Username / ID" required error={fieldErrors.username}>
+          <ModalField label="Username" required error={fieldErrors.username}>
             <ModalInput disabled={mode !== 'create'} type="text" value={formData.username} required error={!!fieldErrors.username}
-              onChange={e => setFormData({ ...formData, username: e.target.value })} placeholder="agent.x" />
+              onChange={e => setFormData({ ...formData, username: e.target.value })} placeholder="agent.name" />
           </ModalField>
-          <ModalField label="Official Email" required error={fieldErrors.email}>
+          <ModalField label="Email" required error={fieldErrors.email}>
             <ModalInput disabled={mode === 'details'} type="email" value={formData.email} required error={!!fieldErrors.email}
-              onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="contact@lic-ops.com" />
+              onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="agent@example.com" />
           </ModalField>
-          <ModalField label="First Name" required error={fieldErrors.first_name}>
+          <ModalField label="First name" required error={fieldErrors.first_name}>
             <ModalInput disabled={mode === 'details'} type="text" value={formData.first_name} required error={!!fieldErrors.first_name}
               onChange={e => setFormData({ ...formData, first_name: e.target.value })} placeholder="John" />
           </ModalField>
-          <ModalField label="Last Name" required error={fieldErrors.last_name}>
+          <ModalField label="Last name" required error={fieldErrors.last_name}>
             <ModalInput disabled={mode === 'details'} type="text" value={formData.last_name} required error={!!fieldErrors.last_name}
               onChange={e => setFormData({ ...formData, last_name: e.target.value })} placeholder="Doe" />
           </ModalField>
-          <ModalField label="Contact Phone">
+          <ModalField label="Phone">
             <ModalInput disabled={mode === 'details'} type="text" value={formData.phone_number}
-              onChange={e => setFormData({ ...formData, phone_number: e.target.value })} placeholder="+977-98XXXXXXXX" />
+              onChange={e => setFormData({ ...formData, phone_number: e.target.value })} placeholder="+977 98XXXXXXXX" />
           </ModalField>
-          <ModalField label="Associated Company" icon={<Building2 size={14} />} required={mode === 'create'} error={fieldErrors.company}>
+          <ModalField label="Company" required={mode === 'create'} error={fieldErrors.company}>
             <ModalSelect
               disabled={mode === 'details'}
               required={mode === 'create'}
@@ -178,23 +163,23 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
               value={formData.company}
               onChange={e => setFormData({ ...formData, company: e.target.value })}
             >
-              <option value="">— Select company —</option>
+              <option value="">Select a company</option>
               {companies.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </ModalSelect>
             {mode === 'create' && companies.length === 0 && (
-              <p className="mt-2 text-[10px] text-amber-500 font-medium">No companies found — create a company first.</p>
+              <p className="mt-1.5 text-xs text-amber-600">No companies found — create a company first.</p>
             )}
           </ModalField>
-          <ModalField label="Security Status">
+          <ModalField label="Status">
             <ModalSelect disabled={mode === 'details'} value={formData.is_active ? 'active' : 'inactive'}
               onChange={e => setFormData({ ...formData, is_active: e.target.value === 'active' })}>
-              <option value="active">Active Service</option>
-              <option value="inactive">Suspended / Deactivated</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </ModalSelect>
           </ModalField>
-          <ModalField label={mode === 'create' ? 'Account Password' : 'Change Password'} icon={<Lock size={14} />} required={mode === 'create'} error={fieldErrors.password}>
+          <ModalField label={mode === 'create' ? 'Password' : 'New password'} required={mode === 'create'} error={fieldErrors.password}>
             <ModalInput
               disabled={mode === 'details'}
               required={mode === 'create'}
@@ -202,9 +187,9 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
               type="password"
               value={formData.password}
               onChange={e => setFormData({ ...formData, password: e.target.value })}
-              placeholder="••••••••••••"
+              placeholder="At least 6 characters"
             />
-            {mode === 'edit' && <p className="mt-2 text-[10px] text-slate-400 font-medium italic">Leave blank to keep the current password.</p>}
+            {mode === 'edit' && <p className="mt-1.5 text-xs text-slate-500">Leave blank to keep the current password.</p>}
           </ModalField>
         </ModalGrid>
       )}

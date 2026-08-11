@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { bulkNotificationsService, type BulkNotification } from './bulkNotificationsService';
 
-export const useBulkNotifications = (searchTerm: string = '', statusFilter: string = 'ALL') => {
+export const useBulkNotifications = (searchTerm: string = '', audienceFilter: string = 'ALL') => {
   const [notifications, setNotifications] = useState<BulkNotification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -11,30 +11,31 @@ export const useBulkNotifications = (searchTerm: string = '', statusFilter: stri
       setLoading(true);
       setError(null);
       const data = await bulkNotificationsService.getBulkNotifications();
-      // Sort by newest first
-      const sortedData = data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      setNotifications(sortedData);
+      setNotifications(
+        [...data].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+      );
     } catch (err: any) {
-      setError(err.message || 'Error fetching bulk notifications');
-      console.error('Fetch error:', err);
+      setError(err.errorMessage || err.message || 'Error fetching notifications');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
-  const filteredNotifications = useMemo(() => {
-    return notifications.filter(notif => {
-      const lowerSearch = searchTerm.toLowerCase();
-      const matchesSearch = notif.title.toLowerCase().includes(lowerSearch) || 
-                            notif.content.toLowerCase().includes(lowerSearch);
-      const matchesStatus = statusFilter === 'ALL' || notif.status === statusFilter;
-      return matchesSearch && matchesStatus;
+  const remove = useCallback(async (id: string) => {
+    await bulkNotificationsService.deleteBulkNotification(id);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    return notifications.filter((n) => {
+      const matchesSearch = !q || n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q);
+      const matchesAudience = audienceFilter === 'ALL' || n.target_type === audienceFilter;
+      return matchesSearch && matchesAudience;
     });
-  }, [notifications, searchTerm, statusFilter]);
+  }, [notifications, searchTerm, audienceFilter]);
 
-  return { notifications: filteredNotifications, loading, error, refetch: fetchNotifications };
+  return { notifications: filtered, allCount: notifications.length, loading, error, refetch: fetchNotifications, remove };
 };

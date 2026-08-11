@@ -1,76 +1,100 @@
-import React, { useState } from 'react';
-import notificationsService from '../notifications/notificationsService';
-import Modal from '../../../components/ui/Modal';
-import Input from '../../../components/ui/Input';
-import Button from '../../../components/ui/Button';
+import React, { useEffect, useState } from 'react';
+import { bulkNotificationsService } from '../../user/bulk-notifications/bulkNotificationsService';
+import AppModal, { ModalField, ModalGrid, ModalInput, ModalTextarea } from '../../../components/ui/AppModal';
+import { extractFieldErrors, extractMessage, type FieldErrors } from '../../../utils/formErrors';
 
 interface SendAlertModalProps {
   isOpen: boolean;
   onClose: () => void;
-  agent: { id: number; username: string; first_name: string; last_name: string } | null;
+  agent: { id: string | number; username: string; first_name: string; last_name: string } | null;
 }
 
 const SendAlertModal: React.FC<SendAlertModalProps> = ({ isOpen, onClose, agent }) => {
-  const [title, setTitle] = useState('Important Alert');
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  useEffect(() => {
+    if (isOpen) {
+      setTitle('');
+      setContent('');
+      setError(null);
+      setFieldErrors({});
+    }
+  }, [isOpen]);
 
   if (!isOpen || !agent) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
     setError(null);
+
+    const errors: FieldErrors = {};
+    if (!title.trim()) errors.title = 'Title is required.';
+    if (!content.trim()) errors.content = 'Message is required.';
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      // Use notificationsService if it had a create method...
-      // I'll add one to notificationsService.ts or call api directly here
-      // Let's add it to notificationsService first (in a next step)
-      // For now, I'll assume it exists
-      await (notificationsService as any).createNotification({
-        recipient: agent.id,
+      // A single-agent alert IS a bulk notification with target_type 'single' —
+      // /api/admin/bulk-notifications is the only notification endpoint there is.
+      await bulkNotificationsService.createBulkNotification({
         title,
         content,
-        status: 'SENT'
+        target_type: 'single',
+        target_agent_id: String(agent.id),
       });
       onClose();
-      alert('Alert sent successfully!');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send alert');
+      setFieldErrors(extractFieldErrors(err));
+      setError(extractMessage(err, 'Failed to send alert'));
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Send Operational Alert`}>
-      <p className="text-sm text-slate-500">To: <b>{agent.first_name} {agent.last_name}</b> (@{agent.username})</p>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">Alert Title</label>
-          <Input value={title} onChange={e => setTitle(e.target.value)} required />
+    <AppModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Send alert"
+      subtitle={`To ${agent.first_name} ${agent.last_name} (@${agent.username})`}
+      mode="create"
+      onSubmit={handleSubmit}
+      loading={submitting}
+      submitLabel="Send alert"
+      maxWidth="max-w-lg"
+    >
+      {error && (
+        <div className="mb-5 rounded-[var(--radius-control)] border border-rose-200 bg-rose-50 px-3 py-2.5 text-[13px] text-rose-700">
+          {error}
         </div>
-
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">Alert Message</label>
-          <textarea
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            required
-            placeholder="Type your message here..."
-            className="w-full min-h-[120px] p-3 rounded-lg border border-surface-200 outline-none text-sm text-slate-700"
+      )}
+      <ModalGrid cols={1}>
+        <ModalField label="Title" required error={fieldErrors.title}>
+          <ModalInput
+            value={title}
+            error={!!fieldErrors.title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Policy renewal reminder"
           />
-        </div>
-
-        {error && <p className="text-sm text-rose-600">{error}</p>}
-
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={onClose}>Cancel</Button>
-          <Button variant="primary" className="flex-1" type="submit" disabled={submitting}>{submitting ? 'Sending...' : 'Send Now'}</Button>
-        </div>
-      </form>
-    </Modal>
+        </ModalField>
+        <ModalField label="Message" required error={fieldErrors.content}>
+          <ModalTextarea
+            rows={5}
+            value={content}
+            error={!!fieldErrors.content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Write your message…"
+          />
+        </ModalField>
+      </ModalGrid>
+    </AppModal>
   );
 };
 

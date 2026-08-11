@@ -50,7 +50,15 @@
 }
 
 :root {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Poppins everywhere. Weights are limited to 400/500/600 by convention —
+     700+ at small sizes is what made the old admin pages read as shouty. */
+  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+
+  /* One radius scale and one border colour, so panels stop disagreeing. */
+  --radius-control: 10px;
+  --radius-panel: 14px;
+  --hairline: var(--color-surface-200);
+
   background-color: var(--color-surface-50);
   color: #111827;
 
@@ -69,11 +77,17 @@ html {
 }
 
 body {
-  font-family: 'Poppins', var(--font-sans);
+  font-family: var(--font-sans);
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-surface-50);
   color: var(--text-primary);
+}
+
+/* Poppins runs optically large; -0.01em keeps headings from feeling loose. */
+h1, h2, h3, h4 {
+  letter-spacing: -0.011em;
 }
 
 /* Typography Utilities */
@@ -125,12 +139,22 @@ body {
   border: 1px solid rgba(229, 231, 235, 0.5);
 }
 
+/* One elevation for resting surfaces, one for things that float above them.
+   Everything else relies on the hairline border instead of a shadow. */
 .matte-shadow {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .matte-shadow-md {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.10);
+}
+
+/* Shared surface for every panel, table wrapper and toolbar. */
+.panel {
+  background: #fff;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 /* Animations */

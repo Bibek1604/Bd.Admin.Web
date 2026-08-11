@@ -36,10 +36,12 @@ export const useAuth = () => {
     }
   };
 
+  // Reuse the store's own logout — it clears every auth key (not just the two
+  // this hook knew about) and flips `isAuthenticated`, which is reactive: any
+  // component reading it (e.g. Login.tsx) re-renders to the logged-out state
+  // without forcing a full page reload.
   const logout = () => {
-    localStorage.removeItem('adminToken');
-    sessionStorage.removeItem('adminUser');
-    window.location.reload();
+    useAuthStore.getState().logout();
   };
 
   return { login, logout, loading, error };

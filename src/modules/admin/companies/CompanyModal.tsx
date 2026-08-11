@@ -165,46 +165,43 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
     }
   };
 
-  const title = mode === 'create' ? 'Register New Company' : mode === 'edit' ? 'Update Company' : 'Company Details';
+  const title = mode === 'create' ? 'New company' : mode === 'edit' ? 'Edit company' : 'Company details';
 
   return (
     <AppModal
       isOpen={isOpen} onClose={onClose} title={title}
       mode={mode} onSubmit={handleSubmit}
       loading={loading}
-      submitLabel={mode === 'create' ? 'Register Company' : 'Save Changes'}
+      submitLabel={mode === 'create' ? 'Create company' : 'Save changes'}
     >
       {mode === 'details' && company ? (
         <>
-          <DetailGroup title="Company Identity">
-            <DetailRow label="Company Name" value={company.name}       icon={<Building2 size={16} />} />
-            <DetailRow label="Company ID"   value={`#${company.id}`}  icon={<Hash size={16} />} />
+          <DetailGroup title="Company">
+            <DetailRow label="Name" value={company.name}       icon={<Building2 size={16} />} />
+            <DetailRow label="ID"   value={`#${company.id}`}  icon={<Hash size={16} />} />
           </DetailGroup>
-          <DetailGroup title="Contact Information">
+          <DetailGroup title="Contact">
             <DetailRow
-              label="Email Address"
+              label="Email"
               value={<a href={`mailto:${company.email}`} className="text-blue-600 hover:underline">{company.email || '—'}</a>}
               icon={<Mail size={16} />}
             />
-            <DetailRow label="Phone Number" value={company.phone_number || '—'} icon={<Phone size={16} />} />
+            <DetailRow label="Phone" value={company.phone_number || '—'} icon={<Phone size={16} />} />
           </DetailGroup>
-          <DetailGroup title="Operational Status">
+          <DetailGroup title="Status">
             <DetailRow
               label="Status"
               value={
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                  company.status === 'ACTIVE'
-                    ? 'bg-green-50 text-green-700 border-green-100'
-                    : 'bg-surface-100 text-slate-500 border-surface-200'
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                  company.status === 'ACTIVE' ? 'bg-brand-50 text-brand-700' : 'bg-surface-100 text-slate-600'
                 }`}>
-                  {company.status === 'ACTIVE' ? <CheckCircle size={11} /> : <XCircle size={11} />}
-                  {company.status === 'ACTIVE' ? 'Active / Verified' : 'Inactive / Suspended'}
+                  {company.status === 'ACTIVE' ? 'Active' : 'Inactive'}
                 </span>
               }
               icon={company.status === 'ACTIVE' ? <CheckCircle size={16} /> : <XCircle size={16} />}
             />
             <DetailRow
-              label="Registered Since"
+              label="Added"
               value={company.created_at ? new Date(company.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
               icon={<Calendar size={16} />}
             />
@@ -214,14 +211,14 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
         <>
           {/* General error banner */}
           {errors.general && (
-            <div className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div className="mb-4 flex items-start gap-2 rounded-[var(--radius-control)] border border-rose-200 bg-rose-50 px-3 py-2.5 text-[13px] text-rose-700">
               <AlertCircle size={16} className="mt-0.5 shrink-0" />
               <span>{errors.general}</span>
             </div>
           )}
 
           {/* Logo upload — no alert(), no native validation */}
-          <ModalField label="Company Logo">
+          <ModalField label="Logo">
             <div className="flex items-center gap-4">
               <input
                 ref={fileInputRef}
@@ -244,15 +241,15 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
                 <button
                   type="button"
                   onClick={imageFile ? handleRemoveImage : () => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 text-xs font-bold bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors"
+                  className="rounded-[var(--radius-control)] border border-surface-200 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 transition-colors hover:bg-surface-50"
                 >
-                  {imageFile ? 'Remove' : 'Upload Logo'}
+                  {imageFile ? 'Remove' : 'Upload logo'}
                 </button>
-                <span className="text-[10px] text-slate-400 font-medium">JPG, PNG, WebP · max 10 MB</span>
+                <span className="text-xs text-slate-500">JPG, PNG, WebP · max 10 MB</span>
               </div>
             </div>
             {errors.image && (
-              <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-rose-600">
+              <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-600">
                 <AlertCircle size={12} /> {errors.image}
               </p>
             )}
@@ -264,7 +261,7 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
               <ModalInput
                 type="text"
                 value={name}
-                placeholder="e.g. Nepal LIC Pvt. Ltd."
+                placeholder="e.g. Nepal Life Insurance"
                 className={touched.name && errors.name ? ERR_CLASS : ''}
                 onChange={e => setName(sanitizeInput(e.target.value))}
                 onBlur={() => touch('name')}
@@ -294,11 +291,11 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
             </ModalField>
 
             {/* Phone */}
-            <ModalField label="Phone Number">
+            <ModalField label="Phone">
               <ModalInput
                 type="text"
                 value={phone}
-                placeholder="+977-9800000000"
+                placeholder="+977 9800000000"
                 className={touched.phone_number && errors.phone_number ? ERR_CLASS : ''}
                 onChange={e => setPhone(sanitizeInput(e.target.value))}
                 onBlur={() => touch('phone_number')}
@@ -317,8 +314,8 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
                 title="Select company operational status"
                 onChange={e => setStatus(e.target.value as 'ACTIVE' | 'INACTIVE')}
               >
-                <option value="ACTIVE">Active / Verified</option>
-                <option value="INACTIVE">Inactive / Suspended</option>
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
               </ModalSelect>
             </ModalField>
           </ModalGrid>

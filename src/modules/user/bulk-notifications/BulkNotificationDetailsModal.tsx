@@ -1,7 +1,7 @@
 import React from 'react';
 import { type BulkNotification } from './bulkNotificationsService';
 import AppModal, { DetailGroup, DetailRow } from '../../../components/ui/AppModal';
-import { Bell, Calendar, UserCheck, Activity } from 'lucide-react';
+import Badge from '../../../components/ui/Badge';
 
 interface BulkNotificationDetailsModalProps {
   notification: BulkNotification | null;
@@ -13,68 +13,29 @@ const BulkNotificationDetailsModal: React.FC<BulkNotificationDetailsModalProps> 
   if (!notification) return null;
 
   return (
-    <AppModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Broadcast Details"
-      mode="details"
-      maxWidth="max-w-xl"
-    >
-      <div className="space-y-6">
+    <AppModal isOpen={isOpen} onClose={onClose} title="Notification" mode="details" maxWidth="max-w-xl">
+      <div className="space-y-5 pt-1">
         <div>
-          <div className="flex gap-2 mb-3">
-             <span className="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-600 text-[10px] font-bold uppercase tracking-widest border border-sky-100">
-               Audience: {notification.target_audience}
-             </span>
-             <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${
-               notification.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'
-             }`}>
-               {notification.status}
-             </span>
-          </div>
-          <h3 className="text-2xl font-black text-slate-800 leading-tight">{notification.title}</h3>
+          <Badge variant={notification.target_type === 'SINGLE' ? 'info' : 'default'}>
+            {notification.target_type === 'SINGLE'
+              ? notification.target_agent?.full_name || 'Single agent'
+              : 'All agents'}
+          </Badge>
+          <h3 className="mt-3 text-lg font-medium leading-snug text-slate-900">{notification.title}</h3>
         </div>
 
-        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-slate-600 leading-relaxed shadow-inner">
+        <p className="whitespace-pre-wrap rounded-[var(--radius-panel)] border border-surface-200 bg-surface-50 p-4 text-sm leading-relaxed text-slate-700">
           {notification.content}
-        </div>
+        </p>
 
-        <DetailGroup title="Delivery Timeline">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
-            <DetailRow
-              label="Created"
-              value={new Date(notification.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}
-              icon={<Calendar size={16} />}
-            />
-            {notification.sent_at && (
-              <DetailRow
-                label="Dispatched"
-                value={new Date(notification.sent_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}
-                icon={<Activity size={16} />}
-              />
-            )}
-            {notification.scheduled_time && (
-              <DetailRow
-                label="Scheduled"
-                value={new Date(notification.scheduled_time).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}
-                icon={<Calendar size={16} />}
-              />
-            )}
-          </div>
-        </DetailGroup>
-
-        <DetailGroup title="Audience Reach">
+        <DetailGroup title="Details">
           <DetailRow
-            label="Target Method"
-            value={notification.target_audience === 'ALL' ? 'Total Userbase Broadcast' : `Segment: ${notification.target_audience}`}
-            icon={<UserCheck size={16} />}
+            label="Sent"
+            value={new Date(notification.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}
           />
-          {notification.selected_users && notification.selected_users.length > 0 && (
-            <DetailRow
-              label="Recipient Count"
-              value={`${notification.selected_users.length} Users`}
-              icon={<Bell size={16} />}
-            />
+          <DetailRow label="Sent by" value={notification.creator?.username} />
+          {notification.target_type === 'SINGLE' && (
+            <DetailRow label="Recipient" value={notification.target_agent?.email} />
           )}
         </DetailGroup>
       </div>

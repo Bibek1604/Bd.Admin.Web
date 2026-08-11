@@ -8,19 +8,20 @@ const CompaniesSection: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        setLoading(true);
-        const data = await companyApi.getCompanies();
-        setCompanies(data);
-      } catch (err) {
-        setError('Failed to load companies. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await companyApi.getCompanies();
+      setCompanies(data);
+    } catch (err) {
+      setError('Failed to load companies. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCompanies();
   }, []);
 
@@ -38,7 +39,7 @@ const CompaniesSection: React.FC = () => {
       <div className="text-center p-10 text-error">
         <div className="text-4xl mb-2">⚠️</div>
         <p className="mb-4 font-semibold">{error}</p>
-        <Button variant="primary" onClick={() => window.location.reload()}>Retry</Button>
+        <Button variant="primary" onClick={fetchCompanies}>Retry</Button>
       </div>
     );
   }
