@@ -5,5 +5,5 @@ interface BrandLogoProps {
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({ className = 'h-12 w-auto' }) => {
-  return <img src="/logo.png" alt="Beema Diary logo" className={className} />;
+  return <img src="/logo.png" alt="BeemaDiary logo" className={className} />;
 };
