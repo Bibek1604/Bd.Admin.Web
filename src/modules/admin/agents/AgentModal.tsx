@@ -15,6 +15,7 @@ interface AgentModalProps {
 const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agent, mode }) => {
   const [formData, setFormData] = useState({
     username: '', email: '', first_name: '', last_name: '', phone_number: '', password: '', is_active: true, company: '',
+    position_designation: '', branch_division: '', qualification: '', short_bio: '',
   });
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,9 +43,13 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
         first_name: agent.first_name, last_name: agent.last_name,
         phone_number: agent.phone_number || '', is_active: agent.is_active,
         password: '', company: agent.company != null ? String(agent.company) : '',
+        position_designation: agent.agent_profile?.specialization || '',
+        branch_division: agent.agent_profile?.branch_division || '',
+        qualification: agent.agent_profile?.qualification || '',
+        short_bio: agent.agent_profile?.short_bio || '',
       });
     } else {
-      setFormData({ username: '', email: '', first_name: '', last_name: '', phone_number: '', password: '', is_active: true, company: '' });
+      setFormData({ username: '', email: '', first_name: '', last_name: '', phone_number: '', password: '', is_active: true, company: '', position_designation: '', branch_division: '', qualification: '', short_bio: '' });
     }
     setError(null);
     setFieldErrors({});
@@ -120,7 +125,7 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
           </div>
 
           <DetailGroup title="Account">
-            <DetailRow label="Username" value={agent.username} />
+            <DetailRow label="Agent Code / Username" value={agent.username} />
             <DetailRow label="Company" value={agent.company_name || 'Unassigned'} />
             <DetailRow label="Clients" value={String(agent.num_clients ?? 0)} />
           </DetailGroup>
@@ -128,15 +133,20 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
             <DetailRow label="Email" value={<a href={`mailto:${agent.email}`} className="text-brand-700 hover:underline">{agent.email}</a>} />
             <DetailRow label="Phone" value={agent.phone_number} />
           </DetailGroup>
-          <DetailGroup title="Credentials">
-            <DetailRow label="License number" value={agent.agent_profile?.license_number} />
+          <DetailGroup title="Profile">
             <DetailRow label="Specialisation" value={agent.agent_profile?.specialization} />
+            <DetailRow label="Branch / Division" value={agent.agent_profile?.branch_division} />
+            <DetailRow label="Qualification" value={agent.agent_profile?.qualification} />
+            <DetailRow label="Short bio" value={agent.agent_profile?.short_bio} />
+          </DetailGroup>
+          <DetailGroup title="Credentials">
+            <DetailRow label="License number" value={agent.agent_profile?.license_number || '—'} />
           </DetailGroup>
         </div>
       ) : (
         <ModalGrid>
-          <ModalField label="Username" required error={fieldErrors.username}>
-            <ModalInput disabled={mode !== 'create'} type="text" value={formData.username} required error={!!fieldErrors.username}
+          <ModalField label="Agent Code / Username" required error={fieldErrors.username}>
+            <ModalInput disabled={mode === 'details'} type="text" value={formData.username} required error={!!fieldErrors.username}
               onChange={e => setFormData({ ...formData, username: e.target.value })} placeholder="agent.name" />
           </ModalField>
           <ModalField label="Email" required error={fieldErrors.email}>
@@ -178,6 +188,22 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </ModalSelect>
+          </ModalField>
+          <ModalField label="Specialisation">
+            <ModalInput disabled={mode === 'details'} type="text" value={formData.position_designation}
+              onChange={e => setFormData({ ...formData, position_designation: e.target.value })} placeholder="e.g. Senior Agent" />
+          </ModalField>
+          <ModalField label="Branch / Division">
+            <ModalInput disabled={mode === 'details'} type="text" value={formData.branch_division}
+              onChange={e => setFormData({ ...formData, branch_division: e.target.value })} placeholder="e.g. Kathmandu Branch" />
+          </ModalField>
+          <ModalField label="Qualification">
+            <ModalInput disabled={mode === 'details'} type="text" value={formData.qualification}
+              onChange={e => setFormData({ ...formData, qualification: e.target.value })} placeholder="e.g. BBA, IRDAI Certified" />
+          </ModalField>
+          <ModalField label="Short bio">
+            <ModalInput disabled={mode === 'details'} type="text" value={formData.short_bio}
+              onChange={e => setFormData({ ...formData, short_bio: e.target.value })} placeholder="A brief description" />
           </ModalField>
           <ModalField label={mode === 'create' ? 'Password' : 'New password'} required={mode === 'create'} error={fieldErrors.password}>
             <ModalInput

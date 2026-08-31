@@ -1,3 +1,10 @@
+/**
+ * DEAD CODE — not imported by anything in the active module architecture.
+ * The active API layer is src\/api\/ (axiosInstance, adminRoutes, baseUrl).
+ * The active hooks live in src\/modules\/*\/use*.ts.
+ * Safe to delete this entire src\/components\/api\/, src\/components\/hooks\/,
+ * and src\/components\/store\/ tree.
+ *\/
 import { useState } from 'react';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../../store/authStore';

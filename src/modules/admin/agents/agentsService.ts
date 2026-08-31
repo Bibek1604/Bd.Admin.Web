@@ -8,6 +8,9 @@ export interface AgentProfile {
   performance_score: number;
   license_number: string;
   specialization: string;
+  branch_division?: string;
+  qualification?: string;
+  short_bio?: string;
 }
 
 export interface Agent {

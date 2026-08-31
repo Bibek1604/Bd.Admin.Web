@@ -1,4 +1,11 @@
 /**
+ * DEAD CODE — not imported by anything in the active module architecture.
+ * The active API layer is src\/api\/ (axiosInstance, adminRoutes, baseUrl).
+ * The active hooks live in src\/modules\/*\/use*.ts.
+ * Safe to delete this entire src\/components\/api\/, src\/components\/hooks\/,
+ * and src\/components\/store\/ tree.
+ *\/
+/**
  * Shared API response handler for the admin panel.
  * Uses JWT Bearer token authentication — no CSRF needed.
  */
