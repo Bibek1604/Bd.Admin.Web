@@ -22,7 +22,7 @@ export const useDashboard = () => {
     }
   };
 
-  // ❌ REMOVED: fetchAuditLogs - /api/admin/audit-logs endpoint does NOT exist in backend
+  // fetchAuditLogs removed — endpoint does not exist in backend
 
   return {
     dashboardStats: store.dashboardStats,

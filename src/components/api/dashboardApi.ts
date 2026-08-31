@@ -12,26 +12,4 @@ export const dashboardApi = {
     });
     return handleResponse(response);
   },
-
-  // ❌ REMOVED: getAuditLogs - /api/admin/audit-logs does NOT exist in backend
-  // This endpoint has been removed from the backend
-  // Do not use this method
-
-  // ✅ CORRECTED: Renamed and corrected endpoint
-  getUserDashboard: async () => {
-    const response = await fetch(`${BASE_URL}${ADMIN_ROUTES.dashboardOverview.replace(/^\//, '')}`, {
-      method: 'GET',
-      headers: getHeaders(getAuthToken()),
-    });
-    return handleResponse(response);
-  },
-
-  // ✅ Added alias for clarity
-  getDashboardOverview: async () => {
-    const response = await fetch(`${BASE_URL}${ADMIN_ROUTES.dashboardOverview.replace(/^\//, '')}`, {
-      method: 'GET',
-      headers: getHeaders(getAuthToken()),
-    });
-    return handleResponse(response);
-  }
 };

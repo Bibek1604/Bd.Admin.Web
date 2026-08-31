@@ -37,7 +37,6 @@ const CompaniesSection: React.FC = () => {
   if (error) {
     return (
       <div className="text-center p-10 text-error">
-        <div className="text-4xl mb-2">⚠️</div>
         <p className="mb-4 font-semibold">{error}</p>
         <Button variant="primary" onClick={fetchCompanies}>Retry</Button>
       </div>

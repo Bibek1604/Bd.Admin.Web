@@ -56,7 +56,7 @@ const CompaniesList: React.FC = () => {
         </div>
       ) : filteredCompanies.length === 0 ? (
         <div className="py-24 bg-white rounded-2xl border-2 border-dashed border-surface-100 text-center">
-          <div className="text-5xl mb-6 opacity-40">🔍</div>
+          <div className="mb-6 opacity-40 flex justify-center"><svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
           <h3 className="text-lg font-extrabold text-slate-900 mb-2">No matches found</h3>
           <p className="text-sm text-slate-400">Try adjusting your search filters.</p>
           {searchTerm && <Button variant="ghost" className="mt-4" onClick={() => setSearchTerm('')}>Clear Search</Button>}

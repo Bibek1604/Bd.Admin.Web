@@ -2,7 +2,6 @@ import { BASE_URL, getHeaders } from './baseUrl';
 import { ADMIN_ROUTES } from './adminRoutes';
 
 export const authApi = {
-  // ✅ CORRECTED: Removed /admin prefix, removed trailing /
   login: async (email: string, password: string) => {
     try {
       const response = await fetch(`${BASE_URL}${ADMIN_ROUTES.login.replace(/^\//, '')}`, {
@@ -22,7 +21,6 @@ export const authApi = {
     }
   },
 
-  // ✅ CORRECTED: Removed /admin prefix
   register: async (email: string, password: string, first_name: string, last_name: string) => {
     try {
       const response = await fetch(`${BASE_URL}api/register`, {
@@ -42,7 +40,6 @@ export const authApi = {
     }
   },
 
-  // ✅ CORRECTED: Removed /admin prefix
   logout: async (token: string) => {
     try {
       const response = await fetch(`${BASE_URL}api/auth/logout`, {
@@ -61,7 +58,6 @@ export const authApi = {
     }
   },
 
-  // ✅ CORRECTED: Removed /auth prefix, removed trailing /
   refreshToken: async (refreshToken: string) => {
     try {
       const response = await fetch(`${BASE_URL}api/auth/refresh`, {
@@ -81,7 +77,6 @@ export const authApi = {
     }
   },
 
-  // ✅ CORRECTED: Removed /auth prefix
   changePassword: async (token: string, current_password: string, new_password: string) => {
     try {
       const response = await fetch(`${BASE_URL}api/change-password`, {
@@ -101,7 +96,6 @@ export const authApi = {
     }
   },
 
-  // ✅ NEW: Added missing forgotPassword
   forgotPassword: async (email: string) => {
     try {
       const response = await fetch(`${BASE_URL}api/forgot-password`, {

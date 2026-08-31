@@ -4,6 +4,7 @@ export const ADMIN_ROUTES = {
   refresh: '/api/auth/refresh',
   logoutAll: '/api/auth/logout-all',
   dashboardOverview: '/api/admin/dashboard-overview/',
+  adminBase: '/api/admin/',
   users: '/api/admin/users/',
   companies: '/api/admin/companies/',
   bulkNotifications: '/api/admin/bulk-notifications/',

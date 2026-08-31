@@ -24,7 +24,7 @@ interface AuthState {
 
 const clearLocalAuth = () => {
   localStorage.removeItem('adminToken');
-  localStorage.removeItem('adminRefreshToken');
+  // adminRefreshToken intentionally not stored in localStorage — httpOnly cookie only
   localStorage.removeItem('adminSessionId');
   sessionStorage.removeItem('adminLoginResponse');
   sessionStorage.removeItem('adminUser');
@@ -32,11 +32,10 @@ const clearLocalAuth = () => {
 
 export const useAuthStore = create<AuthState>((set) => {
   const initialToken = localStorage.getItem('adminToken');
-  const initialRefreshToken = localStorage.getItem('adminRefreshToken');
 
-  // Proactive expiry check on initialization
+  // Proactive expiry check — refresh is via httpOnly bd_rt cookie, not localStorage
   let effectiveToken = initialToken;
-  if (initialToken && isTokenExpired(initialToken) && !initialRefreshToken) {
+  if (initialToken && isTokenExpired(initialToken)) {
     clearLocalAuth();
     effectiveToken = null;
   }
@@ -60,9 +59,7 @@ export const useAuthStore = create<AuthState>((set) => {
       clearLocalAuth();
       localStorage.setItem('adminToken', token);
       sessionStorage.setItem('adminUser', JSON.stringify(user));
-      if (meta?.refreshToken) {
-        localStorage.setItem('adminRefreshToken', meta.refreshToken);
-      }
+      // refreshToken goes only to the httpOnly bd_rt cookie (set server-side) — never localStorage
       if (meta?.sessionId !== undefined && meta?.sessionId !== null) {
         const sessionId = String(meta.sessionId).trim();
         const invalid = new Set(['nan', 'undefined', 'null', '']);
@@ -84,7 +81,6 @@ export const useAuthStore = create<AuthState>((set) => {
 
     // Explicit sign-out — calls server then clears local state.
     signOut: () => {
-      const refreshToken = localStorage.getItem('adminRefreshToken');
       const sessionId = localStorage.getItem('adminSessionId');
       const accessToken = localStorage.getItem('adminToken');
       if (accessToken) {
@@ -92,8 +88,8 @@ export const useAuthStore = create<AuthState>((set) => {
         void axios
           .post(
             `${BASE_URL}api/auth/logout`,
-            { session_id: sessionId, refreshToken },
-            { headers: { Authorization: `${scheme} ${accessToken}` } }
+            { session_id: sessionId },
+            { headers: { Authorization: `${scheme} ${accessToken}` }, withCredentials: true }
           )
           .catch(() => {});
       }
