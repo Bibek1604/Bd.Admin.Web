@@ -25,7 +25,6 @@ export const useAdmin = () => {
     }
   };
 
-  // Generic fetch for any admin entity
   const fetchEntities = async (entityKey: string, storeKey: any) => {
     return performAction(async () => {
       const data = await adminApi.fetchEntity(entityKey);
@@ -34,7 +33,6 @@ export const useAdmin = () => {
     });
   };
 
-  // CRUD wrappers
   const createEntity = async (entityKey: string, storeKey: any, data: any) => {
     return performAction(async () => {
       const newItem = await adminApi.createEntity(entityKey, data);
@@ -64,36 +62,24 @@ export const useAdmin = () => {
     });
   };
 
-  // Specific helpers for all admin entities
   return {
     ...store,
     loading: localLoading || store.loading,
     error: localError || store.error,
-    
-    // Entity specific hooks
+
     fetchUsers: () => fetchEntities('users', 'users'),
     fetchCompanies: () => fetchEntities('companies', 'companies'),
     fetchAgents: () => fetchEntities('agents', 'agents'),
     fetchBulkNotifications: () => fetchEntities('bulk-notifications', 'bulkNotifications'),
-    fetchNotifications: () => fetchEntities('notifications', 'notifications'),
-    fetchPolicies: () => fetchEntities('policies', 'policies'),
-    fetchReports: () => fetchEntities('reports', 'reports'),
-    fetchNews: () => fetchEntities('news', 'news'),
-    fetchResources: () => fetchEntities('resources', 'resources'),
-    fetchAchievements: () => fetchEntities('achievements', 'achievements'),
-    fetchUserAchievements: () => fetchEntities('user-achievements', 'userAchievements'),
-    
-    // CRUD wrappers
+
     createUser: (data: any) => createEntity('users', 'users', data),
     updateUser: (id: string | number, data: any) => updateEntity('users', 'users', id, data),
     deleteUser: (id: string | number) => deleteEntity('users', 'users', id),
-    
+
     createCompany: (data: any) => createEntity('companies', 'companies', data),
-    updateCompany: (id: string|number, data: any) => updateEntity('companies', 'companies', id, data),
-    deleteCompany: (id: string|number) => deleteEntity('companies', 'companies', id),
-    
-    // ... similarly others can be added as needed, but let's add basic ones.
-    
+    updateCompany: (id: string | number, data: any) => updateEntity('companies', 'companies', id, data),
+    deleteCompany: (id: string | number) => deleteEntity('companies', 'companies', id),
+
     fetchDashboardStats: async () => {
       return performAction(async () => {
         const stats = await adminApi.getDashboardStats();
@@ -101,7 +87,5 @@ export const useAdmin = () => {
         return stats;
       });
     },
-
-    // ❌ REMOVED: fetchAuditLogs - /api/admin/audit-logs endpoint does NOT exist in backend
   };
 };

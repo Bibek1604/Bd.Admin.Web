@@ -5,15 +5,7 @@ interface AdminState {
   companies: any[];
   agents: any[];
   bulkNotifications: any[];
-  notifications: any[];
-  policies: any[];
-  reports: any[];
-  news: any[];
-  resources: any[];
-  achievements: any[];
-  userAchievements: any[];
   dashboardStats: any | null;
-  auditLogs: any[];
   userDashboard: any | null;
 
   loading: boolean;
@@ -30,15 +22,7 @@ export const useAdminStore = create<AdminState>((set) => ({
   companies: [],
   agents: [],
   bulkNotifications: [],
-  notifications: [],
-  policies: [],
-  reports: [],
-  news: [],
-  resources: [],
-  achievements: [],
-  userAchievements: [],
   dashboardStats: null,
-  auditLogs: [],
   userDashboard: null,
 
   loading: false,
