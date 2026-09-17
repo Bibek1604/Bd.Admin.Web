@@ -110,7 +110,10 @@ export const RowAction: React.FC<
     aria-label={label}
     {...props}
     className={cn(
-      'inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-slate-400 transition-colors',
+      // 44px on touch-sized viewports. At a flat 32px these sit shoulder to
+      // shoulder — five of them on an agent row, one of which is Delete — which
+      // is a mis-tap waiting to happen on a phone.
+      'inline-flex h-8 w-8 max-lg:h-11 max-lg:w-11 items-center justify-center rounded-[var(--radius-control)] text-slate-400 transition-colors',
       danger ? 'hover:bg-rose-50 hover:text-rose-600' : 'hover:bg-surface-100 hover:text-slate-700',
       className,
     )}

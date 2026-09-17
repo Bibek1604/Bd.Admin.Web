@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Eye, MessageSquare, Pencil, Plus, Trash2, UserCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, MessageSquare, Pencil, Plus, Trash2, UploadCloud, UserCheck } from 'lucide-react';
 import Pagination from '../../../components/ui/Pagination';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
@@ -11,6 +12,7 @@ import SendAlertModal from './SendAlertModal';
 import AgentModal from './AgentModal';
 
 const AgentsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { agents, loading, error, refresh, create, update, remove } = useAgents();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -82,6 +84,12 @@ const AgentsPage: React.FC = () => {
       cell: (a) => (
         <div className="flex items-center justify-end gap-0.5">
           <RowAction label="View details" onClick={() => openModal('details', a)}><Eye size={15} /></RowAction>
+          <RowAction
+            label="Bulk upload clients"
+            onClick={() => navigate(`/clients/bulk-enrollment?agentId=${encodeURIComponent(a.id)}`)}
+          >
+            <UploadCloud size={15} />
+          </RowAction>
           <RowAction label="Send alert" onClick={() => { setSelectedAgent(a); setIsAlertOpen(true); }}><MessageSquare size={15} /></RowAction>
           <RowAction label="Edit agent" onClick={() => openModal('edit', a)}><Pencil size={15} /></RowAction>
           <RowAction label="Delete agent" danger onClick={() => handleDelete(a)}><Trash2 size={15} /></RowAction>

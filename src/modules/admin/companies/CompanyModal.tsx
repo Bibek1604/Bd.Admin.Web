@@ -17,6 +17,7 @@ interface FormErrors {
   name?: string;
   email?: string;
   phone_number?: string;
+  address?: string;
   image?: string;
   general?: string;
 }
@@ -62,6 +63,7 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
   const [name, setName]             = useState('');
   const [email, setEmail]           = useState('');
   const [phone, setPhone]           = useState('');
+  const [address, setAddress]     = useState('');
   const [status, setStatus]         = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [imageFile, setImageFile]   = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -77,10 +79,11 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
       setName(company.name);
       setEmail(company.email || '');
       setPhone(company.phone_number || '');
+      setAddress(company.address || '');
       setStatus(company.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE');
       setImagePreview(company.image ? resolveImage(company.image) : null);
     } else if (isOpen && mode === 'create') {
-      setName(''); setEmail(''); setPhone(''); setStatus('ACTIVE');
+      setName(''); setEmail(''); setPhone(''); setAddress(''); setStatus('ACTIVE');
       setImageFile(null); setImagePreview(null);
     }
     setErrors({}); setTouched({}); setImageError(null);
@@ -144,6 +147,7 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
       name:         name.trim(),
       email:        email.trim() || undefined,
       phone_number: phone.trim() || undefined,
+      address:      address.trim() || undefined,
       status,
       ...(imageFile instanceof File ? { image: imageFile } : {}),
     };
@@ -303,6 +307,28 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
               {touched.phone_number && errors.phone_number && (
                 <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-rose-600">
                   <AlertCircle size={12} /> {errors.phone_number}
+                </p>
+              )}
+            </ModalField>
+
+            {/* Address.
+                The details modal has always rendered `company.address`, but
+                neither create nor update accepted it and the serializer omitted
+                it, so it permanently read "Address not listed". The API stores
+                it now; this is the input that fills it. */}
+            <ModalField label="Address">
+              <ModalInput
+                type="text"
+                value={address}
+                placeholder="Ward 12, Lalitpur, Bagmati"
+                maxLength={255}
+                className={touched.address && errors.address ? ERR_CLASS : ''}
+                onChange={e => setAddress(sanitizeInput(e.target.value))}
+                onBlur={() => touch('address')}
+              />
+              {touched.address && errors.address && (
+                <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-rose-600">
+                  <AlertCircle size={12} /> {errors.address}
                 </p>
               )}
             </ModalField>

@@ -37,7 +37,11 @@ const OverviewPage: React.FC = () => {
 
   const sum = apiStats?.summary;
   const totalPolicies = apiStats?.total_policies ?? 0;
-  const lapsedPolicies = sum?.lapsed_policies ?? 0;
+  // null means the backend could not compute it — NOT that it is zero. Kept
+  // distinct all the way to the screen: "0 lapsed policies" is a specific and
+  // reassuring claim, and making it up when the count failed is worse than
+  // admitting the number is missing.
+  const lapsedPolicies: number | null = sum?.lapsed_policies ?? null;
 
   const compositionData = [
     { name: 'Clients', value: apiStats?.total_users ?? 0, fill: '#16a34a' },
@@ -46,8 +50,13 @@ const OverviewPage: React.FC = () => {
     { name: 'Policies', value: totalPolicies, fill: '#3b82f6' },
   ];
 
-  const healthBars = [
-    { label: 'Active policies', value: Math.max(0, totalPolicies - lapsedPolicies), total: totalPolicies, color: 'bg-brand-500' },
+  const healthBars: Array<{ label: string; value: number | null; total: number; color: string }> = [
+    {
+      label: 'Active policies',
+      value: lapsedPolicies === null ? null : Math.max(0, totalPolicies - lapsedPolicies),
+      total: totalPolicies,
+      color: 'bg-brand-500',
+    },
     { label: 'Lapsed policies', value: lapsedPolicies, total: totalPolicies, color: 'bg-rose-500' },
     { label: 'Active members', value: sum?.active_members ?? 0, total: sum?.total_members ?? 0, color: 'bg-blue-500' },
     { label: 'Inactive members', value: sum?.inactive_members ?? 0, total: sum?.total_members ?? 0, color: 'bg-amber-500' },
@@ -91,14 +100,21 @@ const OverviewPage: React.FC = () => {
           <p className="mt-0.5 text-[13px] text-slate-500">Current status.</p>
           <div className="mt-5 flex-1 space-y-4">
             {healthBars.map((item) => {
-              const pct = item.total > 0 ? Math.round((item.value / item.total) * 100) : 0;
+              const unknown = item.value === null;
+              const pct = !unknown && item.total > 0 ? Math.round(((item.value as number) / item.total) * 100) : 0;
               return (
                 <div key={item.label} className="space-y-1.5">
                   <div className="flex items-baseline justify-between text-[13px]">
                     <span className="text-slate-600">{item.label}</span>
-                    <span className="text-slate-900">
-                      {item.value.toLocaleString()}
-                      {item.total > 0 && <span className="text-slate-400"> / {item.total.toLocaleString()}</span>}
+                    <span className={unknown ? 'text-slate-400' : 'text-slate-900'}>
+                      {unknown ? (
+                        <span title="This figure could not be calculated. Reload to try again.">Unavailable</span>
+                      ) : (
+                        <>
+                          {(item.value as number).toLocaleString()}
+                          {item.total > 0 && <span className="text-slate-400"> / {item.total.toLocaleString()}</span>}
+                        </>
+                      )}
                     </span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-100">

@@ -12,6 +12,31 @@ interface AgentModalProps {
   mode: 'create' | 'edit' | 'details';
 }
 
+/**
+ * The server's password policy, stated here so the form can enforce the same
+ * one. Mirrors PasswordUtils.validatePasswordStrength in the backend
+ * (src/utils/passwordUtils.ts), which POST /api/admin/agents applies.
+ *
+ * This form used to require only "at least 10 characters" with no complexity
+ * rules, and the field's placeholder said so — while the server demanded 12
+ * characters plus an uppercase letter, a lowercase letter, a digit and a
+ * symbol. An admin who typed an 11-character password passed every check the
+ * screen showed them, submitted, and got back a list of four rules the form had
+ * never mentioned.
+ *
+ * Returns the first unmet rule, or null when the password is acceptable.
+ */
+export const PASSWORD_POLICY_HINT = 'At least 12 characters, with upper and lower case, a number and a symbol';
+
+export function passwordPolicyError(password: string): string | null {
+  if (password.length < 12) return 'Password must be at least 12 characters long.';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter.';
+  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter.';
+  if (!/[0-9]/.test(password)) return 'Password must contain at least one number.';
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) return 'Password must contain at least one special character.';
+  return null;
+}
+
 const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agent, mode }) => {
   const [formData, setFormData] = useState({
     username: '', email: '', first_name: '', last_name: '', phone_number: '', password: '', is_active: true, company: '',
@@ -64,7 +89,10 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
     if (!formData.last_name.trim()) e.last_name = 'Last name is required.';
     if (mode === 'create' && !formData.company) e.company = 'Select an associated company.';
     if (mode === 'create' && !formData.password.trim()) e.password = 'Password is required.';
-    else if (formData.password.trim() && formData.password.trim().length < 6) e.password = 'Password must be at least 6 characters.';
+    else if (formData.password.trim()) {
+      const problem = passwordPolicyError(formData.password.trim());
+      if (problem) e.password = problem;
+    }
     return e;
   };
 
@@ -213,7 +241,7 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
               type="password"
               value={formData.password}
               onChange={e => setFormData({ ...formData, password: e.target.value })}
-              placeholder="At least 6 characters"
+              placeholder={PASSWORD_POLICY_HINT}
             />
             {mode === 'edit' && <p className="mt-1.5 text-xs text-slate-500">Leave blank to keep the current password.</p>}
           </ModalField>

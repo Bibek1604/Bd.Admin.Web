@@ -10,6 +10,7 @@ const OverviewPage = lazy(() => import('./modules/admin/dashboard/OverviewPage')
 const AgentsPage = lazy(() => import('./modules/admin/agents/AgentsPage'));
 const CompaniesPage = lazy(() => import('./modules/admin/companies/CompaniesPage'));
 const NotificationsPage = lazy(() => import('./modules/user/bulk-notifications/BulkNotificationsPage'));
+const BulkEnrollmentPage = lazy(() => import('./modules/admin/clients/BulkEnrollmentPage'));
 
 // Simple loading indicator
 const LoadingScreen = () => (
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/agents" element={<AgentsPage />} />
                 <Route path="/companies" element={<CompaniesPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/clients/bulk-enrollment" element={<BulkEnrollmentPage />} />
               </Route>
               <Route path="*" element={<Navigate to="/overview" replace />} />
             </Routes>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
@@ -23,16 +23,55 @@ const AppModal: React.FC<AppModalProps> = ({
   loading = false, submitLabel, children, footer,
   maxWidth = 'max-w-125',
 }) => {
-  // Lock background scroll + close on Escape while open.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = React.useId();
+
+  // Escape + scroll lock (as before), plus the three that were missing: focus
+  // moves INTO the dialog on open, Tab is kept inside it, and focus returns to
+  // whatever opened it on close. `aria-modal` below already told screen readers
+  // the page behind was inert; until now that was not true, and Tab walked
+  // straight through the obscured page.
   useEffect(() => {
     if (!isOpen) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+
+    const FOCUSABLE =
+      'a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+    const raf = requestAnimationFrame(() => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      (panel.querySelector<HTMLElement>(FOCUSABLE) || panel).focus({ preventScroll: true });
+    });
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key !== 'Tab') return;
+
+      const panel = panelRef.current;
+      if (!panel) return;
+      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE))
+        .filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (items.length === 0) { e.preventDefault(); panel.focus({ preventScroll: true }); return; }
+
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (!e.shiftKey && (active === last || !panel.contains(active))) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && (active === first || !panel.contains(active))) { e.preventDefault(); last.focus(); }
+    };
+
     window.addEventListener('keydown', onKey);
     return () => {
+      cancelAnimationFrame(raf);
       document.body.style.overflow = prev;
       window.removeEventListener('keydown', onKey);
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus({ preventScroll: true });
+      }
     };
   }, [isOpen, onClose]);
 
@@ -43,6 +82,8 @@ const AppModal: React.FC<AppModalProps> = ({
       className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"
+      // Without this a screen reader announces "dialog" and nothing else.
+      aria-labelledby={titleId}
     >
       {/* Backdrop */}
       <div
@@ -53,12 +94,14 @@ const AppModal: React.FC<AppModalProps> = ({
 
       {/* Panel */}
       <div
-        className={`relative flex w-full ${maxWidth} max-h-[88vh] flex-col overflow-hidden rounded-[var(--radius-panel)] bg-white shadow-[0_16px_48px_-12px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 animate-modal-panel`}
+        ref={panelRef}
+        tabIndex={-1}
+        className={`relative flex w-full ${maxWidth} max-h-[88vh] flex-col overflow-hidden rounded-[var(--radius-panel)] bg-white shadow-[0_16px_48px_-12px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 animate-modal-panel focus:outline-none`}
       >
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between gap-4 px-6 pt-5 pb-3">
           <div className="min-w-0">
-            <h2 className="truncate text-base font-semibold text-slate-900">{title}</h2>
+            <h2 id={titleId} className="truncate text-base font-semibold text-slate-900">{title}</h2>
             {subtitle && <p className="mt-0.5 truncate text-[13px] text-slate-500">{subtitle}</p>}
           </div>
           <button
@@ -120,23 +163,72 @@ const AppModal: React.FC<AppModalProps> = ({
 
 // -- Shared field layout components -------------------------------------------
 
-export const ModalField: React.FC<{ label: string; children: React.ReactNode; fullWidth?: boolean; icon?: React.ReactNode; error?: string; required?: boolean }> = ({ label, children, fullWidth, icon, error, required }) => (
-  <div className={`flex flex-col ${fullWidth ? 'col-span-full' : ''}`}>
-    {/* Sentence case at 13px/500 — the old uppercase 10px/900 labels were
-        louder than the values they described. */}
-    <label className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-slate-700">
-      {icon}
-      {label}
-      {required && <span className="leading-none text-rose-500">*</span>}
-    </label>
-    {children}
-    {error && (
-      <p className="mt-1.5 flex items-center gap-1 text-xs text-rose-600">
-        <AlertCircle size={12} /> {error}
-      </p>
-    )}
-  </div>
-);
+/**
+ * Label + control + error, with the three tied together.
+ *
+ * The label used to sit next to `{children}` with no htmlFor and no id on the
+ * control, so a screen reader announced every admin form field as an unlabelled
+ * input and clicking the label did nothing. The single child is now cloned with
+ * a generated id plus aria-describedby/aria-invalid when there is an error — a
+ * caller that passes its own id keeps it.
+ */
+export const ModalField: React.FC<{ label: string; children: React.ReactNode; fullWidth?: boolean; icon?: React.ReactNode; error?: string; required?: boolean }> = ({ label, children, fullWidth, icon, error, required }) => {
+  const generatedId = React.useId();
+  const errorId = `${generatedId}-error`;
+
+  /**
+   * Wire the FIRST element child, not the only one.
+   *
+   * Requiring a single child looked equivalent but was not: several callers
+   * render the control followed by a conditional hint or inline error —
+   *
+   *   <ModalField label="Company Name *">
+   *     <ModalInput ... />
+   *     {touched.name && errors.name && <p>...</p>}
+   *   </ModalField>
+   *
+   * — which is two children even when the second is `false`. Those fields fell
+   * through to the untouched branch, so they had no id, the <label> had no
+   * htmlFor, and the control had no accessible name at all. That covered every
+   * field in the Companies modal and the Company and Password fields in the
+   * Agents modal: a screen reader announced them as unlabelled inputs and
+   * clicking the label did nothing.
+   */
+  const childArray = React.Children.toArray(children);
+  const controlIndex = childArray.findIndex((child) => React.isValidElement(child));
+  const controlChild = controlIndex >= 0 ? (childArray[controlIndex] as React.ReactElement<{ id?: string }>) : null;
+  const controlId = controlChild ? (controlChild.props.id ?? generatedId) : undefined;
+
+  const control = controlChild
+    ? childArray.map((child, index) =>
+        index === controlIndex
+          ? React.cloneElement(controlChild as React.ReactElement<Record<string, unknown>>, {
+              id: controlId,
+              'aria-invalid': error ? true : undefined,
+              'aria-describedby': error ? errorId : undefined,
+            })
+          : child
+      )
+    : children;
+
+  return (
+    <div className={`flex flex-col ${fullWidth ? 'col-span-full' : ''}`}>
+      {/* Sentence case at 13px/500 — the old uppercase 10px/900 labels were
+          louder than the values they described. */}
+      <label htmlFor={controlId} className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-slate-700">
+        {icon}
+        {label}
+        {required && <span aria-hidden="true" className="leading-none text-rose-500">*</span>}
+      </label>
+      {control}
+      {error && (
+        <p id={errorId} role="alert" className="mt-1.5 flex items-center gap-1 text-xs text-rose-600">
+          <AlertCircle size={12} aria-hidden="true" /> {error}
+        </p>
+      )}
+    </div>
+  );
+};
 
 export const DetailRow: React.FC<{ label: string; value?: React.ReactNode; icon?: React.ReactNode; accent?: string }> = ({ label, value }) => (
   <div className="flex flex-col gap-0.5 border-b border-surface-200 py-3 last:border-b-0 sm:flex-row sm:items-baseline sm:gap-4">

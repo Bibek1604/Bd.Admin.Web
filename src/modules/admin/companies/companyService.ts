@@ -8,6 +8,7 @@ export interface Company {
   name: string;
   email: string | null;
   phone_number: string | null;
+  address?: string | null;
   image: string | null;
   status: 'ACTIVE' | 'INACTIVE';
   created_at: string;
@@ -18,6 +19,7 @@ export interface CreateCompanyData {
   name: string;
   email?: string;
   phone_number?: string;
+  address?: string;
   image?: File | null;
   status?: 'ACTIVE' | 'INACTIVE';
 }
@@ -80,6 +82,7 @@ const companyService = {
     formData.append('name', data.name.trim());
     if (data.email)        formData.append('email',        data.email.trim());
     if (data.phone_number) formData.append('phone_number', data.phone_number.trim());
+    if (data.address) formData.append('address', data.address.trim());
     if (data.status)       formData.append('status',       data.status);
     if (data.image instanceof File) formData.append('image', data.image);
 
@@ -94,6 +97,7 @@ const companyService = {
     if (data.name         !== undefined) formData.append('name',         data.name.trim());
     if (data.email        !== undefined) formData.append('email',        data.email.trim());
     if (data.phone_number !== undefined) formData.append('phone_number', data.phone_number.trim());
+    if (data.address !== undefined) formData.append('address', data.address.trim());
     if (data.status       !== undefined) formData.append('status',       data.status);
     if (data.image instanceof File)      formData.append('image',        data.image);
 

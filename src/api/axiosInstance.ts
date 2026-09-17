@@ -14,7 +14,11 @@ const api = axios.create({
   baseURL: BASE,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
-  withCredentials: false, // tokens are in Authorization header, no cookies needed
+  // The ACCESS token travels in the Authorization header, but the REFRESH token
+  // lives only in the httpOnly bd_rt cookie (authStore deliberately never puts
+  // it in localStorage), so the cookie has to be sent for silent refresh to
+  // work at all. This matches the agent app's client.ts.
+  withCredentials: true,
 });
 
 /** JWT → "Bearer <token>" */
@@ -93,14 +97,13 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const storedRefresh = localStorage.getItem('adminRefreshToken');
-
-      if (!storedRefresh) {
-        // No refresh token — don't logout if we still have an access token
-        // (could be a 401 for wrong role, not expiry)
-        if (!localStorage.getItem('adminToken')) {
-          useAuthStore.getState().logout();
-        }
+      // The refresh token is in the httpOnly bd_rt cookie, which JS cannot read.
+      // This used to look for `adminRefreshToken` in localStorage — which
+      // authStore deliberately never writes — so the lookup always came back
+      // null and silent refresh never actually ran: every expired access token
+      // surfaced to the user as a failed request instead.
+      if (!localStorage.getItem('adminToken')) {
+        useAuthStore.getState().logout();
         return Promise.reject(error);
       }
 
@@ -117,22 +120,21 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // POST /api/auth/refresh  →  { status, message, accessToken, refreshToken }
+        // POST /api/auth/refresh → { status, message, accessToken }
+        // The refresh token is sent automatically as the bd_rt cookie and is
+        // rotated server-side; nothing is read from or written to JS storage.
         const { data } = await axios.post(
           `${BASE}/api/auth/refresh`,
-          { refreshToken: storedRefresh },
-          { headers: { 'Content-Type': 'application/json' } }
+          {},
+          { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
         );
 
-        const newAccessToken: string  = data.accessToken  ?? data.token  ?? '';
-        const newRefreshToken: string = data.refreshToken ?? storedRefresh;
+        const newAccessToken: string = data.accessToken ?? data.token ?? '';
 
         if (!newAccessToken) throw new Error('Empty access token from refresh endpoint');
 
         const currentUser = useAuthStore.getState().user;
-        useAuthStore.getState().setAuth(newAccessToken, currentUser, {
-          refreshToken: newRefreshToken,
-        });
+        useAuthStore.getState().setAuth(newAccessToken, currentUser);
 
         originalRequest.headers.Authorization = buildAuthHeader(newAccessToken);
         processQueue(null, newAccessToken);

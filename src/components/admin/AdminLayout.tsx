@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
-  Briefcase, Bell, UserCheck, LayoutDashboard, LogOut, Menu, X, ChevronLeft, ChevronRight,
+  Briefcase, Bell, UserCheck, LayoutDashboard, LogOut, Menu, X, ChevronLeft, ChevronRight, Users,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { BrandLogo } from '../BrandLogo';
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/agents', label: 'Agents', icon: UserCheck },
   { to: '/companies', label: 'Companies', icon: Briefcase },
   { to: '/notifications', label: 'Notifications', icon: Bell },
+  { to: '/clients/bulk-enrollment', label: 'Bulk Enrollment', icon: Users },
 ];
 
 const AdminLayout: React.FC = () => {

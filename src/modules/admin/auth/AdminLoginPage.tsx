@@ -54,7 +54,24 @@ const AdminLoginPage: React.FC = () => {
     if (!validate()) return;
     const ok = await login(email.trim(), password);
     if (ok) {
-      navigate('/', { replace: true });
+      /**
+       * Go to the landing page BY NAME, not to "/".
+       *
+       * "/" is not a route in the authenticated tree — it was only ever handled
+       * by the catch-all `<Route path="*" element={<Navigate to="/overview" />}>`
+       * in App.tsx, and relying on that made login a race it lost:
+       *
+       *   1. login() flips isAuthenticated, App swaps in the authenticated
+       *      <Routes>, the catch-all mounts and redirects to /overview;
+       *   2. this handler resumes after its await and pushes "/" back on top;
+       *   3. the catch-all route element is reused rather than remounted, so
+       *      <Navigate>'s effect does not fire a second time.
+       *
+       * The result was a blank page at "/" after every successful sign-in —
+       * authenticated, with a valid token, and nothing rendered. Naming the
+       * destination removes the bounce entirely.
+       */
+      navigate('/overview', { replace: true });
     }
   };
 
@@ -170,7 +187,10 @@ const AdminLoginPage: React.FC = () => {
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowPw(v => !v)}
-                    className="shrink-0 text-slate-300 transition-colors hover:text-brand-500"
+                    /* The 18px icon alone gave an 18x18 target. The button now
+                       carries its own 24x24 box (WCAG 2.2 SC 2.5.8) while the
+                       icon stays the same size. */
+                    className="shrink-0 h-6 w-6 flex items-center justify-center text-slate-300 transition-colors hover:text-brand-500"
                     aria-label={showPw ? 'Hide password' : 'Show password'}
                   >
                     {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -180,7 +200,9 @@ const AdminLoginPage: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-3 py-2">
-                <input id="rem" type="checkbox" className="w-5 h-5 rounded-lg border-surface-200 text-brand-600 focus:ring-brand-500/20 cursor-pointer transition-all" />
+                {/* w-6 h-6 (24px), not w-5 h-5 (20px): WCAG 2.2 SC 2.5.8 sets
+                    24x24 CSS px as the minimum target size. */}
+                <input id="rem" type="checkbox" className="w-6 h-6 rounded-lg border-surface-200 text-brand-600 focus:ring-brand-500/20 cursor-pointer transition-all" />
                 <label htmlFor="rem" className="text-sm font-bold text-slate-500 cursor-pointer hover:text-slate-700 select-none">Remember this device</label>
               </div>
 
