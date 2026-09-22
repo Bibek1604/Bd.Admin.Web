@@ -38,6 +38,15 @@ export interface BulkImportResult {
   issues_truncated: boolean;
   unmapped_columns: string[];
   agent_column_ignored: boolean;
+  /**
+   * Problems with the import as a WHOLE, as opposed to `issues`, which is
+   * per-row. Currently one thing: the server reads the rows it just wrote back
+   * and confirms they are linked to the selected agent, because an older build
+   * wrote them unowned and still reported every row created — the clients were
+   * invisible to the agent they had been assigned to and nothing said so.
+   * Always an array from the server; optional here for older responses.
+   */
+  warnings?: string[];
   importId?: string;
 }
 
@@ -49,6 +58,8 @@ export interface ImportHistoryEntry {
   file_name: string;
   totals: BulkImportTotals;
   status: 'COMPLETED' | 'PARTIAL';
+  /** Same whole-import warnings as BulkImportResult, as stored on the log. */
+  warnings?: string[];
   created_at: string;
 }
 

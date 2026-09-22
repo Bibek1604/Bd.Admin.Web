@@ -109,7 +109,18 @@ const BulkEnrollmentPage: React.FC = () => {
     { header: 'File', cell: (r) => r.file_name },
     { header: 'Created', cell: (r) => r.totals?.created ?? 0 },
     { header: 'Failed', cell: (r) => r.totals?.failed ?? 0 },
-    { header: 'Status', cell: (r) => <Badge variant={r.status === 'COMPLETED' ? 'success' : 'warning'}>{r.status}</Badge> },
+    {
+      header: 'Status',
+      // A PARTIAL run with "Failed: 0" is a real outcome, not a contradiction:
+      // the rows were written but the import could not confirm they are linked
+      // to the chosen agent. Carry the reason on the badge, or the history row
+      // says something is wrong without saying what.
+      cell: (r) => (
+        <span title={(r.warnings || []).join(' ') || undefined}>
+          <Badge variant={r.status === 'COMPLETED' ? 'success' : 'warning'}>{r.status}</Badge>
+        </span>
+      ),
+    },
   ];
 
   return (
@@ -194,6 +205,22 @@ const BulkEnrollmentPage: React.FC = () => {
             <StatCard label={step === 'completed' ? 'Created' : 'Will Create'} value={activeResult.totals.created} tone="success" />
             <StatCard label={step === 'completed' ? 'Failed' : 'Invalid'} value={step === 'completed' ? activeResult.totals.failed : invalidCount} tone="error" />
           </div>
+
+          {/*
+            Whole-import warnings, above the per-row table: the rows were
+            written, so the counters read as a success, but something about the
+            import as a whole needs saying — today that the written clients
+            could not be confirmed as linked to the selected agent. Rendered as
+            an alert rather than in the muted "ignored columns" note, because
+            this one means the admin has to go and check.
+          */}
+          {activeResult.warnings && activeResult.warnings.length > 0 && (
+            <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              {activeResult.warnings.map((warning) => (
+                <p key={warning}>{warning}</p>
+              ))}
+            </div>
+          )}
 
           {(activeResult.unmapped_columns.length > 0 || activeResult.agent_column_ignored) && (
             <div className="space-y-1 text-xs text-slate-500">
