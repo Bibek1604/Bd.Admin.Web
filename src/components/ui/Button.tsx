@@ -17,8 +17,9 @@ const variants: Record<string, string> = {
 };
 
 const sizes: Record<string, string> = {
-  sm: 'h-8 gap-1.5 px-3 text-[13px]',
-  md: 'h-10 gap-2 px-4 text-sm',
+  // pointer-coarse: 44px on touch devices; desktop sizes unchanged.
+  sm: 'h-8 pointer-coarse:h-11 gap-1.5 px-3 text-[13px]',
+  md: 'h-10 pointer-coarse:h-11 gap-2 px-4 text-sm',
   lg: 'h-11 gap-2 px-5 text-sm',
 };
 

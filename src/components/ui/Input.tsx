@@ -5,9 +5,11 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
   size?: 'sm' | 'md' | 'lg';
 }
 
+// pointer-coarse: 44px touch targets on phones/tablets without changing the
+// desktop (mouse) layout. Same rule in Button, Page and Pagination.
 const sizeMap: Record<string, string> = {
-  sm: 'h-8 px-2.5 text-[13px]',
-  md: 'h-10 px-3 text-sm',
+  sm: 'h-8 pointer-coarse:h-11 px-2.5 text-[13px]',
+  md: 'h-10 pointer-coarse:h-11 px-3 text-sm',
   lg: 'h-11 px-3.5 text-sm',
 };
 

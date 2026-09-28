@@ -77,7 +77,16 @@ export const extractMessage = (err: any, fallback = 'Something went wrong. Pleas
   // like a clean failure and invites exactly the retry that duplicates an
   // import. Say what actually happened instead.
   if (isGatewayError(err)) {
-    return 'The server did not reply in time. The work may still be running — check the result before trying again.';
+    return 'The server did not reply in time. The work may still be running. Check the result before trying again.';
+  }
+
+  // "Validation failed" is a headline, not an explanation: when the specific
+  // messages are present, show those instead of hiding them behind it.
+  if (d?.message === 'Validation failed' && Array.isArray(d?.errors) && d.errors.length) {
+    const messages = d.errors
+      .map((e: unknown) => (typeof e === 'string' ? e : (e as { message?: unknown } | null)?.message))
+      .filter((m: unknown): m is string => typeof m === 'string' && m.length > 0);
+    if (messages.length) return messages.slice(0, 3).join(' ');
   }
 
   if (d?.message) {
@@ -99,7 +108,7 @@ export const extractMessage = (err: any, fallback = 'Something went wrong. Pleas
   // Below here there is no response body, so err.message is raw axios text —
   // "timeout of 30000ms exceeded", "Network Error". Never show those.
   if (isTimeoutError(err)) {
-    return 'The server is taking longer than expected to respond. Your request may still have gone through — check before trying again.';
+    return 'The server is taking longer than expected to respond. Your request may still have gone through. Check before trying again.';
   }
   if (!err?.response) {
     return 'Could not reach the server. Check your connection and try again.';

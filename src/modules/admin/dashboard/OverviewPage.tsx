@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Users, UserCheck, Briefcase, FileText, Shield } from 'lucide-react';
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { getDashboardStats, type DashboardStats } from './dashboardService';
-import { Page, PageHeader } from '../../../components/ui/Page';
+import { ErrorState, LoadingState, Page, PageHeader } from '../../../components/ui/Page';
+import { extractMessage } from '../../../utils/formErrors';
 
 type TooltipPayloadItem = { name?: string; value?: number };
 
@@ -22,10 +23,40 @@ const ChartTooltip: React.FC<{ active?: boolean; payload?: TooltipPayloadItem[];
 
 const OverviewPage: React.FC = () => {
   const [apiStats, setApiStats] = useState<DashboardStats | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    getDashboardStats().then(setApiStats).catch(() => {});
-  }, []);
+  const fetchStats = useCallback(
+    () =>
+      getDashboardStats()
+        .then(setApiStats)
+        .catch((err) => setLoadError(extractMessage(err, 'Could not load the dashboard totals.'))),
+    [],
+  );
+
+  useEffect(() => { void fetchStats(); }, [fetchStats]);
+
+  const retry = () => {
+    setLoadError(null);
+    void fetchStats();
+  };
+
+  // Never render made-up zeros: a failed load says so and offers a retry.
+  if (loadError) {
+    return (
+      <Page>
+        <PageHeader title="Overview" description="Live totals across the platform." />
+        <ErrorState title="Couldn't load the dashboard" message={loadError} onRetry={retry} />
+      </Page>
+    );
+  }
+  if (!apiStats) {
+    return (
+      <Page>
+        <PageHeader title="Overview" description="Live totals across the platform." />
+        <LoadingState label="Loading totals…" />
+      </Page>
+    );
+  }
 
   const stats = [
     { label: 'Clients', value: apiStats?.total_users ?? 0, icon: <Users size={17} /> },

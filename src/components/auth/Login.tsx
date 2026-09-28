@@ -107,8 +107,7 @@ const AdminLogin: React.FC = () => {
           <div className="mt-10 text-center">
              <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 leading-relaxed">
                 Compliance ID: LIC-GLOBAL-77 <br />
-                © 2026 Life Insurance Corporation <br />
-                Developed by Keen Tech Solution
+                © 2026 Life Insurance Corporation
              </p>
           </div>
         </div>

@@ -61,9 +61,17 @@ const CreateNotificationModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }
     }
   };
 
+  // Cancel used to keep the last error, so reopening the dialog greeted the
+  // admin with a failure from a previous attempt.
+  const handleClose = () => {
+    setError(null);
+    setFieldErrors({});
+    onClose();
+  };
+
   return (
     <AppModal
-      isOpen={isOpen} onClose={onClose} title="New notification"
+      isOpen={isOpen} onClose={handleClose} title="New notification"
       subtitle="Send a message to your agents."
       accentColor="sky" mode="create" onSubmit={handleSubmit}
       loading={loading} submitLabel="Send"

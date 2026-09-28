@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import agentsService from '../agents/agentsService';
-import { useBulkEnrollment } from './useBulkEnrollment';
+import { importFileProblem, MAX_IMPORT_FILE_MB, useBulkEnrollment } from './useBulkEnrollment';
 import { bulkEnrollmentService, type ImportHistoryEntry } from './bulkEnrollmentService';
 import { Page, PageHeader } from '../../../components/ui/Page';
 import { Button } from '../../../components/ui/Button';
@@ -100,7 +100,7 @@ const BulkEnrollmentPage: React.FC = () => {
     { header: 'Row', cell: (r) => r.rowNumber },
     { header: 'Client', cell: (r) => r.identifier },
     { header: 'Status', cell: (r) => <Badge variant={STATUS_TONE[r.status] || 'default'}>{r.status}</Badge> },
-    { header: 'Reason', cell: (r) => (r.errors || []).map((e) => e.message).join('; ') || '—' },
+    { header: 'Reason', cell: (r) => (r.errors || []).map((e) => e.message).join('; ') || '-' },
   ];
 
   const historyColumns: Column<ImportHistoryEntry>[] = [
@@ -147,19 +147,24 @@ const BulkEnrollmentPage: React.FC = () => {
           </ModalSelect>
         </ModalField>
 
-        <ModalField label="Upload File (.xlsx, .xls or .csv)" required>
+        <ModalField label={`Upload File (.xlsx, .xls or .csv, up to ${MAX_IMPORT_FILE_MB}MB)`} required>
           <input
             type="file"
             accept=".xlsx,.xls,.csv"
             disabled={locked}
-            onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 file:mr-4 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1 file:text-[11px] file:font-bold file:text-slate-700 transition-all hover:file:bg-slate-200"
+            onChange={(e) => {
+              const picked = e.target.files ? e.target.files[0] : null;
+              setFile(picked);
+              // A refused file must not stay displayed as if it were selected.
+              if (picked && importFileProblem(picked)) e.target.value = '';
+            }}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 pointer-coarse:min-h-11 text-sm text-slate-600 file:mr-4 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1 file:text-[11px] file:font-bold file:text-slate-700 transition-all hover:file:bg-slate-200"
           />
         </ModalField>
 
         <p className="max-w-full break-words text-xs text-slate-500">
           Every row in the file enrolls a new client under the selected agent. Required columns
-          are marked <strong>*</strong> in the template — a row missing one is reported as
+          are marked <strong>*</strong> in the template. A row missing one is reported as
           Invalid and is not imported, never completed with placeholder data. Duplicates
           (matching email, phone or policy number) are not checked, so re-uploading the same
           file will create the clients again.
@@ -171,7 +176,7 @@ const BulkEnrollmentPage: React.FC = () => {
         {step === 'unknown' ? (
           <div className="rounded-[var(--radius-control)] border border-amber-200 bg-amber-50 px-3 py-2.5 text-[13px] text-amber-800">
             <strong>The import may still be running.</strong> The server did not answer in time,
-            but it does not stop working when the browser stops waiting — some or all of these
+            but it does not stop working when the browser stops waiting, so some or all of these
             clients may already have been created.
             <br />
             <strong>Do not upload this file again.</strong> Check Recent Imports below and the
@@ -225,7 +230,7 @@ const BulkEnrollmentPage: React.FC = () => {
           {(activeResult.unmapped_columns.length > 0 || activeResult.agent_column_ignored) && (
             <div className="space-y-1 text-xs text-slate-500">
               {activeResult.agent_column_ignored && (
-                <p>An "Agent" column was found in the file and ignored — every row is assigned to <strong>{activeResult.agent.name}</strong>, the agent selected above.</p>
+                <p>An "Agent" column was found in the file and ignored. Every row is assigned to <strong>{activeResult.agent.name}</strong>, the agent selected above.</p>
               )}
               {activeResult.unmapped_columns.length > 0 && (
                 <p>Columns not recognized and ignored: {activeResult.unmapped_columns.join(', ')}</p>
@@ -269,7 +274,7 @@ const BulkEnrollmentPage: React.FC = () => {
           {step === 'completed' && (
             <div className="panel flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="text-sm text-slate-700">
-                <strong>Bulk Enrollment Completed</strong> — Agent: {activeResult.agent.name} · File: {activeResult.file.name}
+                <strong>Bulk Enrollment Completed</strong> · Agent: {activeResult.agent.name} · File: {activeResult.file.name}
               </div>
               {activeResult.issues.length > 0 && (
                 <Button variant="outline" onClick={downloadErrorReport}>

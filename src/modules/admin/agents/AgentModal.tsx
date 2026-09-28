@@ -168,7 +168,7 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
             <DetailRow label="Short bio" value={agent.agent_profile?.short_bio} />
           </DetailGroup>
           <DetailGroup title="Credentials">
-            <DetailRow label="License number" value={agent.agent_profile?.license_number || '—'} />
+            <DetailRow label="License number" value={agent.agent_profile?.license_number || '-'} />
           </DetailGroup>
         </div>
       ) : (
@@ -207,7 +207,7 @@ const AgentModal: React.FC<AgentModalProps> = ({ isOpen, onClose, onSubmit, agen
               ))}
             </ModalSelect>
             {mode === 'create' && companies.length === 0 && (
-              <p className="mt-1.5 text-xs text-amber-600">No companies found — create a company first.</p>
+              <p className="mt-1.5 text-xs text-amber-600">No companies found. Create a company first.</p>
             )}
           </ModalField>
           <ModalField label="Status">

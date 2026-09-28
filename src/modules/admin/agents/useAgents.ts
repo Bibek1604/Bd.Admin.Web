@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { agentsService, type Agent } from './agentsService';
+import { extractMessage } from '../../../utils/formErrors';
 
 export const useAgents = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -13,11 +14,10 @@ export const useAgents = () => {
       setAgents(data);
       setError(null);
     } catch (err: any) {
-      if (err.response?.status === 401 || err.name === 'CanceledError') {
-        // Silent fail for expected auth errors or cancellations
-        return;
-      }
-      setError(err.message || 'Failed to fetch agents');
+      // A 401 here means the refresh already failed and the store is signing
+      // out, so there is nothing useful to show; a cancellation is expected.
+      if (err.response?.status === 401 || err.name === 'CanceledError') return;
+      setError(extractMessage(err, 'Could not load agents.'));
     } finally {
       setLoading(false);
     }

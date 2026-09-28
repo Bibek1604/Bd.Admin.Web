@@ -2,6 +2,22 @@ import { useEffect, Suspense, lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import ConnectionGuard from './components/ConnectionGuard';
+import { ConfirmProvider } from './components/ui/ConfirmDialog';
+import { brandImageUrl, useBrandingStore } from './store/brandingStore';
+
+/** Point the browser tab icon at the uploaded favicon (Website -> Branding). */
+const useBrandFavicon = () => {
+  const load = useBrandingStore((s) => s.load);
+  const favicon = useBrandingStore((s) => brandImageUrl(s.branding?.favicon_url));
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!link) return;
+    if (!link.dataset.defaultHref) link.dataset.defaultHref = link.getAttribute('href') || '/favicon.png';
+    link.removeAttribute('type'); // the uploaded icon is WebP, not the PNG the tag declares
+    link.href = favicon || link.dataset.defaultHref;
+  }, [favicon]);
+};
 
 // Lazy-loaded components
 const AdminLogin = lazy(() => import('./modules/admin/auth/AdminLoginPage'));
@@ -11,6 +27,9 @@ const AgentsPage = lazy(() => import('./modules/admin/agents/AgentsPage'));
 const CompaniesPage = lazy(() => import('./modules/admin/companies/CompaniesPage'));
 const NotificationsPage = lazy(() => import('./modules/user/bulk-notifications/BulkNotificationsPage'));
 const BulkEnrollmentPage = lazy(() => import('./modules/admin/clients/BulkEnrollmentPage'));
+const RequestsPage = lazy(() => import('./modules/admin/requests/RequestsPage'));
+const WebsitePage = lazy(() => import('./modules/admin/website/WebsitePage'));
+const MessagesPage = lazy(() => import('./modules/admin/website/MessagesPage'));
 
 // Simple loading indicator
 const LoadingScreen = () => (
@@ -20,13 +39,20 @@ const LoadingScreen = () => (
 );
 
 function App() {
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated, logout, isRestoring, restoreSession } = useAuthStore();
+  useBrandFavicon();
+
+  // A reload with an expired access token tries the refresh cookie once
+  // before deciding between the console and the login screen.
+  useEffect(() => {
+    if (isRestoring) void restoreSession();
+  }, [isRestoring, restoreSession]);
 
   useEffect(() => {
     // Check if token exists in localStorage if we think we are authenticated
     const checkAuth = () => {
       const token = localStorage.getItem('adminToken');
-      if (isAuthenticated && !token) {
+      if (isAuthenticated && !token && !useAuthStore.getState().isRestoring) {
         logout();
       }
     };
@@ -48,9 +74,12 @@ function App() {
 
   return (
     <ConnectionGuard>
+      <ConfirmProvider>
       <div className="App">
         <Suspense fallback={<LoadingScreen />}>
-          {isAuthenticated ? (
+          {isRestoring ? (
+            <LoadingScreen />
+          ) : isAuthenticated ? (
             // Every sidebar entry is a real route, so the URL reflects the page
             // and back/forward, refresh and deep links all work.
             <Routes>
@@ -60,6 +89,9 @@ function App() {
                 <Route path="/companies" element={<CompaniesPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/clients/bulk-enrollment" element={<BulkEnrollmentPage />} />
+                <Route path="/requests" element={<RequestsPage />} />
+                <Route path="/website" element={<WebsitePage />} />
+                <Route path="/messages" element={<MessagesPage />} />
               </Route>
               <Route path="*" element={<Navigate to="/overview" replace />} />
             </Routes>
@@ -70,6 +102,7 @@ function App() {
           )}
         </Suspense>
       </div>
+      </ConfirmProvider>
     </ConnectionGuard>
   );
 }

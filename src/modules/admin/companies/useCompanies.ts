@@ -5,14 +5,13 @@ import companyService, {
   type CompanyListParams,
   type PaginatedCompaniesResponse,
 } from './companyService';
+import { extractMessage } from '../../../utils/formErrors';
 
 // ── Error helpers ─────────────────────────────────────────────────────────────
 
-const extractErrorMessage = (err: any): string => {
-  const d = err?.response?.data;
-  if (d?.message) return d.message;
-  return err?.message || 'An unexpected error occurred';
-};
+// Delegates to the shared helper so raw axios text ("Network Error",
+// "Request failed with status code 409") never reaches the page.
+const extractErrorMessage = (err: any): string => extractMessage(err, 'An unexpected error occurred');
 
 /** Maps backend errors array → { fieldName: message } */
 export const extractFieldErrors = (err: any): Record<string, string> => {

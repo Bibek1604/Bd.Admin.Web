@@ -18,6 +18,10 @@ export const ADMIN_ROUTES = {
   companies: '/api/admin/companies/',
   bulkNotifications: '/api/admin/bulk-notifications/',
   bulkClientImport: '/api/admin/clients/bulk-upload',
+  requests: '/api/admin/requests',
+  siteContent: '/api/admin/site-content',
+  siteBranding: '/api/admin/site-branding',
+  contactMessages: '/api/admin/contact-messages',
 } as const;
 
 export const AGENT_ROUTES = {

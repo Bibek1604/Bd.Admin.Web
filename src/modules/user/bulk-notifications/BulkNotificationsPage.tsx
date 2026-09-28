@@ -10,6 +10,7 @@ import { useBulkNotifications } from './useBulkNotifications';
 import { type BulkNotification } from './bulkNotificationsService';
 import BulkNotificationDetailsModal from './BulkNotificationDetailsModal';
 import CreateNotificationModal from './CreateNotificationModal';
+import { useConfirm } from '../../../components/ui/ConfirmDialog';
 
 const BulkNotificationsPage: React.FC = () => {
   const [search, setSearch] = useState('');
@@ -25,10 +26,16 @@ const BulkNotificationsPage: React.FC = () => {
     [notifications, selectedId],
   );
 
-  const handleDelete = (n: BulkNotification) => {
-    if (window.confirm(`Delete "${n.title}"? This cannot be undone.`)) {
-      remove(n.id).catch(() => refetch());
-    }
+  const confirm = useConfirm();
+  const handleDelete = async (n: BulkNotification) => {
+    const ok = await confirm({
+      title: 'Delete this notification?',
+      message: 'This cannot be undone.',
+      details: [{ label: 'Title', value: n.title }],
+      confirmLabel: 'Delete notification',
+      tone: 'danger',
+    });
+    if (ok) remove(n.id).catch(() => refetch());
   };
 
   const columns: Column<BulkNotification>[] = [
@@ -51,7 +58,7 @@ const BulkNotificationsPage: React.FC = () => {
     },
     {
       header: 'Sent by',
-      cell: (n) => n.creator?.username || <span className="text-slate-400">—</span>,
+      cell: (n) => n.creator?.username || <span className="text-slate-400">-</span>,
       hideBelowLg: true,
     },
     {

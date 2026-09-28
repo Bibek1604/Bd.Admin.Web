@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertCircle, RefreshCcw, SearchX } from 'lucide-react';
+import { AlertCircle, RefreshCcw, SearchX, X } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 /**
@@ -41,7 +41,7 @@ export const Toolbar: React.FC<{
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-[var(--radius-control)] border border-surface-200 bg-surface-50 pl-3 pr-3 text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:bg-white"
+        className="h-10 pointer-coarse:h-11 w-full rounded-[var(--radius-control)] border border-surface-200 bg-surface-50 pl-3 pr-3 text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:bg-white"
       />
     </label>
     {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
@@ -56,7 +56,7 @@ export const ToolbarSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElemen
   <select
     {...props}
     className={cn(
-      'h-10 min-w-[9rem] cursor-pointer rounded-[var(--radius-control)] border border-surface-200 bg-surface-50 px-3 text-sm text-slate-700 outline-none transition-colors hover:bg-white focus:border-brand-500 focus:bg-white',
+      'h-10 pointer-coarse:h-11 min-w-[9rem] cursor-pointer rounded-[var(--radius-control)] border border-surface-200 bg-surface-50 px-3 text-sm text-slate-700 outline-none transition-colors hover:bg-white focus:border-brand-500 focus:bg-white',
       className,
     )}
   />
@@ -105,5 +105,23 @@ export const ErrorState: React.FC<{ title?: string; message?: string; onRetry?: 
         <RefreshCcw size={15} /> Try again
       </button>
     )}
+  </div>
+);
+
+/** Dismissible banner for an action that failed (delete, approve…) while the list itself is fine. */
+export const ErrorNotice: React.FC<{ message: string; onDismiss: () => void }> = ({ message, onDismiss }) => (
+  <div
+    role="alert"
+    className="flex items-start justify-between gap-3 rounded-[var(--radius-control)] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+  >
+    <span>{message}</span>
+    <button
+      type="button"
+      onClick={onDismiss}
+      aria-label="Dismiss"
+      className="-m-2 flex min-h-11 min-w-11 shrink-0 items-center justify-center opacity-70 hover:opacity-100 sm:min-h-0 sm:min-w-0 sm:p-2"
+    >
+      <X size={15} />
+    </button>
   </div>
 );

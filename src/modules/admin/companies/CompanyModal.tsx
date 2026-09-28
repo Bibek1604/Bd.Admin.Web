@@ -3,7 +3,7 @@ import type { Company, CreateCompanyData } from './companyService';
 import AppModal, { ModalField, ModalGrid, ModalInput, ModalSelect, DetailRow, DetailGroup } from '../../../components/ui/AppModal';
 import resolveImage from '../../../utils/resolveImage';
 import { Building2, Mail, Phone, CheckCircle, XCircle, Hash, Calendar, ImageIcon, AlertCircle } from 'lucide-react';
-import { sanitizeInput } from '../../../utils/sanitization';
+import { sanitizeTextInput } from '../../../utils/sanitization';
 import { extractFieldErrors } from './useCompanies';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -82,6 +82,9 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
       setAddress(company.address || '');
       setStatus(company.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE');
       setImagePreview(company.image ? resolveImage(company.image) : null);
+      // The modal stays mounted between opens: a logo picked for another
+      // company and then cancelled was still pending and got uploaded here.
+      setImageFile(null);
     } else if (isOpen && mode === 'create') {
       setName(''); setEmail(''); setPhone(''); setAddress(''); setStatus('ACTIVE');
       setImageFile(null); setImagePreview(null);
@@ -146,8 +149,11 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
     const submitData: CreateCompanyData = {
       name:         name.trim(),
       email:        email.trim() || undefined,
-      phone_number: phone.trim() || undefined,
-      address:      address.trim() || undefined,
+      // In edit mode an emptied field must be SENT ('' → the API stores null);
+      // `undefined` is skipped by companyService, so clearing silently kept the
+      // old phone/address.
+      phone_number: phone.trim() || (mode === 'edit' ? '' : undefined),
+      address:      address.trim() || (mode === 'edit' ? '' : undefined),
       status,
       ...(imageFile instanceof File ? { image: imageFile } : {}),
     };
@@ -187,10 +193,10 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
           <DetailGroup title="Contact">
             <DetailRow
               label="Email"
-              value={<a href={`mailto:${company.email}`} className="text-blue-600 hover:underline">{company.email || '—'}</a>}
+              value={<a href={`mailto:${company.email}`} className="text-blue-600 hover:underline">{company.email || '-'}</a>}
               icon={<Mail size={16} />}
             />
-            <DetailRow label="Phone" value={company.phone_number || '—'} icon={<Phone size={16} />} />
+            <DetailRow label="Phone" value={company.phone_number || '-'} icon={<Phone size={16} />} />
           </DetailGroup>
           <DetailGroup title="Status">
             <DetailRow
@@ -206,7 +212,7 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
             />
             <DetailRow
               label="Added"
-              value={company.created_at ? new Date(company.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+              value={company.created_at ? new Date(company.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'}
               icon={<Calendar size={16} />}
             />
           </DetailGroup>
@@ -267,7 +273,7 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
                 value={name}
                 placeholder="e.g. Nepal Life Insurance"
                 className={touched.name && errors.name ? ERR_CLASS : ''}
-                onChange={e => setName(sanitizeInput(e.target.value))}
+                onChange={e => setName(sanitizeTextInput(e.target.value))}
                 onBlur={() => touch('name')}
               />
               {touched.name && errors.name && (
@@ -284,7 +290,7 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
                 value={email}
                 placeholder="contact@company.com"
                 className={touched.email && errors.email ? ERR_CLASS : ''}
-                onChange={e => setEmail(sanitizeInput(e.target.value))}
+                onChange={e => setEmail(sanitizeTextInput(e.target.value))}
                 onBlur={() => touch('email')}
               />
               {touched.email && errors.email && (
@@ -301,7 +307,7 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
                 value={phone}
                 placeholder="+977 9800000000"
                 className={touched.phone_number && errors.phone_number ? ERR_CLASS : ''}
-                onChange={e => setPhone(sanitizeInput(e.target.value))}
+                onChange={e => setPhone(sanitizeTextInput(e.target.value))}
                 onBlur={() => touch('phone_number')}
               />
               {touched.phone_number && errors.phone_number && (
@@ -323,7 +329,7 @@ const CompanyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSubmit, company
                 placeholder="Ward 12, Lalitpur, Bagmati"
                 maxLength={255}
                 className={touched.address && errors.address ? ERR_CLASS : ''}
-                onChange={e => setAddress(sanitizeInput(e.target.value))}
+                onChange={e => setAddress(sanitizeTextInput(e.target.value))}
                 onBlur={() => touch('address')}
               />
               {touched.address && errors.address && (

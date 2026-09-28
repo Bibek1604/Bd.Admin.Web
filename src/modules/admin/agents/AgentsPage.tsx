@@ -5,11 +5,13 @@ import Pagination from '../../../components/ui/Pagination';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import DataTable, { Monogram, PrimaryCell, RowAction, type Column } from '../../../components/ui/DataTable';
-import { EmptyState, ErrorState, LoadingState, Page, PageHeader, Toolbar, ToolbarSelect } from '../../../components/ui/Page';
+import { EmptyState, ErrorNotice, ErrorState, LoadingState, Page, PageHeader, Toolbar, ToolbarSelect } from '../../../components/ui/Page';
+import { extractMessage } from '../../../utils/formErrors';
 import { usePagination } from '../../../hooks/usePagination';
 import { useAgents } from './useAgents';
 import SendAlertModal from './SendAlertModal';
 import AgentModal from './AgentModal';
+import { useConfirm } from '../../../components/ui/ConfirmDialog';
 
 const AgentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +22,7 @@ const AgentsPage: React.FC = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'details'>('create');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -50,9 +53,26 @@ const AgentsPage: React.FC = () => {
     }
   };
 
-  const handleDelete = (agent: any) => {
-    if (window.confirm(`Delete ${agent.first_name} ${agent.last_name}? This cannot be undone.`)) {
-      remove(agent.id);
+  const confirm = useConfirm();
+  const handleDelete = async (agent: any) => {
+    const ok = await confirm({
+      title: 'Delete this agent?',
+      message: 'This cannot be undone.',
+      details: [
+        { label: 'Name', value: `${agent.first_name ?? ''} ${agent.last_name ?? ''}`.trim() },
+        { label: 'Email', value: agent.email },
+      ],
+      confirmLabel: 'Delete agent',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    setActionError(null);
+    // The rejection used to go unhandled: a refused delete (e.g. the agent
+    // still owns clients) looked exactly like nothing happening.
+    try {
+      await remove(agent.id);
+    } catch (err) {
+      setActionError(extractMessage(err, 'Could not delete the agent.'));
     }
   };
 
@@ -121,6 +141,8 @@ const AgentsPage: React.FC = () => {
           <option value="inactive">Inactive</option>
         </ToolbarSelect>
       </Toolbar>
+
+      {actionError && <ErrorNotice message={actionError} onDismiss={() => setActionError(null)} />}
 
       {error ? (
         <ErrorState title="Couldn't load agents" message={error} onRetry={() => refresh()} />

@@ -190,7 +190,7 @@ const AdminLoginPage: React.FC = () => {
                     /* The 18px icon alone gave an 18x18 target. The button now
                        carries its own 24x24 box (WCAG 2.2 SC 2.5.8) while the
                        icon stays the same size. */
-                    className="shrink-0 h-6 w-6 flex items-center justify-center text-slate-300 transition-colors hover:text-brand-500"
+                    className="shrink-0 h-6 w-6 pointer-coarse:-mr-2.5 pointer-coarse:h-11 pointer-coarse:w-11 flex items-center justify-center text-slate-300 transition-colors hover:text-brand-500"
                     aria-label={showPw ? 'Hide password' : 'Show password'}
                   >
                     {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -228,8 +228,7 @@ const AdminLoginPage: React.FC = () => {
             <div className="pt-10 text-center">
               <p className="mx-auto max-w-50 text-[10px] font-black uppercase tracking-widest text-slate-300 leading-relaxed">
                 Compliance ID: LIC-GLOBAL-77 <br />
-                © 2026 Life Insurance Corporation <br />
-                Developed by Keen Tech Solution
+                © 2026 Life Insurance Corporation
               </p>
             </div>
           </div>

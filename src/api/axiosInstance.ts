@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { rateLimiter } from '../utils/rateLimiter';
+import { requestNewAccessToken } from './sessionRefresh';
+import { extractMessage } from '../utils/formErrors';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -87,12 +89,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Attach backend error message to error object for catch blocks
-    if (error.response?.data) {
-      const d = error.response.data as any;
-      (error as any).errorMessage =
-        d.message ?? d.errors?.[0] ?? d.detail ?? error.message ?? 'An error occurred';
-    }
+    // Attach a human-readable message for catch blocks. This used to fall back
+    // to error.message ("Request failed with status code 413") for any non-JSON
+    // body and could take an error OBJECT from errors[0] ("[object Object]").
+    // Callers read `err.errorMessage || err.message`, so it must always be set.
+    (error as any).errorMessage = extractMessage(error, 'The request could not be completed. Please try again.');
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -120,18 +121,9 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // POST /api/auth/refresh → { status, message, accessToken }
-        // The refresh token is sent automatically as the bd_rt cookie and is
-        // rotated server-side; nothing is read from or written to JS storage.
-        const { data } = await axios.post(
-          `${BASE}/api/auth/refresh`,
-          {},
-          { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
-        );
-
-        const newAccessToken: string = data.accessToken ?? data.token ?? '';
-
-        if (!newAccessToken) throw new Error('Empty access token from refresh endpoint');
+        // POST /api/auth/refresh — shared with the startup restore so the two
+        // can never present the same bd_rt cookie twice.
+        const newAccessToken = await requestNewAccessToken();
 
         const currentUser = useAuthStore.getState().user;
         useAuthStore.getState().setAuth(newAccessToken, currentUser);

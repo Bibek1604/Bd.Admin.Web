@@ -4,19 +4,22 @@ import Pagination from '../../../components/ui/Pagination';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import DataTable, { Monogram, PrimaryCell, RowAction, type Column } from '../../../components/ui/DataTable';
-import { EmptyState, ErrorState, LoadingState, Page, PageHeader, Toolbar, ToolbarSelect } from '../../../components/ui/Page';
+import { EmptyState, ErrorNotice, ErrorState, LoadingState, Page, PageHeader, Toolbar, ToolbarSelect } from '../../../components/ui/Page';
+import { extractMessage } from '../../../utils/formErrors';
 import { usePagination } from '../../../hooks/usePagination';
 import { useCompanies } from './useCompanies';
 import CompanyModal from './CompanyModal';
 import { type Company } from './companyService';
+import { useConfirm } from '../../../components/ui/ConfirmDialog';
 
 const CompaniesPage: React.FC = () => {
-  const { companies, loading, error, createCompany, updateCompany, deleteCompany } = useCompanies();
+  const { companies, loading, error, refresh, createCompany, updateCompany, deleteCompany } = useCompanies();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'details'>('create');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -44,9 +47,22 @@ const CompaniesPage: React.FC = () => {
     }
   };
 
-  const handleDelete = (company: Company) => {
-    if (window.confirm(`Delete ${company.name}? This cannot be undone.`)) {
-      deleteCompany(company.id);
+  const confirm = useConfirm();
+  const handleDelete = async (company: Company) => {
+    const ok = await confirm({
+      title: 'Delete this company?',
+      message: 'This cannot be undone.',
+      details: [{ label: 'Company', value: company.name }],
+      confirmLabel: 'Delete company',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    setActionError(null);
+    // Unhandled before: a 409 (company still has agents) showed nothing at all.
+    try {
+      await deleteCompany(company.id);
+    } catch (err) {
+      setActionError(extractMessage(err, 'Could not delete the company.'));
     }
   };
 
@@ -67,13 +83,13 @@ const CompaniesPage: React.FC = () => {
         />
       ),
     },
-    { header: 'Phone', cell: (c) => c.phone_number || <span className="text-slate-400">—</span>, hideBelowLg: true },
+    { header: 'Phone', cell: (c) => c.phone_number || <span className="text-slate-400">-</span>, hideBelowLg: true },
     {
       header: 'Added',
       cell: (c) =>
         c.created_at
           ? new Date(c.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-          : '—',
+          : '-',
       hideBelowLg: true,
     },
     {
@@ -121,8 +137,10 @@ const CompaniesPage: React.FC = () => {
         </ToolbarSelect>
       </Toolbar>
 
+      {actionError && <ErrorNotice message={actionError} onDismiss={() => setActionError(null)} />}
+
       {error ? (
-        <ErrorState title="Couldn't load companies" message={error} />
+        <ErrorState title="Couldn't load companies" message={error} onRetry={() => refresh()} />
       ) : loading && filtered.length === 0 ? (
         <LoadingState label="Loading companies…" />
       ) : filtered.length === 0 ? (

@@ -7,6 +7,18 @@
  * Sanitize user input to remove HTML and special characters
  * Safe for database storage
  */
+/**
+ * Clean a value typed into a controlled input. sanitizeInput must NOT be used
+ * for that: its pattern-stripping runs on every keystroke, so "Jonas=" lost
+ * "onas=" (read as an `on…=` event handler) and the mangled text was saved.
+ * React escapes on output; storage wants the literal text. Angle brackets are
+ * dropped and length is capped.
+ */
+export const sanitizeTextInput = (input: string | null | undefined, maxLength = 1000): string => {
+  if (!input) return '';
+  return String(input).replace(/[<>]/g, '').slice(0, maxLength);
+};
+
 export const sanitizeInput = (input: string): string => {
   if (!input || typeof input !== 'string') return '';
 
@@ -62,6 +74,13 @@ export const sanitizeUrl = (url: string): string => {
 
   // Block dangerous protocols
   if (/^(javascript|data|vbscript|file):/i.test(str)) {
+    return '';
+  }
+
+  // "//evil.com" and "/\evil.com" start with "/" but browsers read them as
+  // protocol-relative links to ANOTHER host, so a same-site path check let an
+  // open redirect through.
+  if (/^\/[/\\]/.test(str)) {
     return '';
   }
 

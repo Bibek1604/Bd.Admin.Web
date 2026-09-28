@@ -11,6 +11,27 @@ import { extractMessage, isOutcomeUnknown } from '../../../utils/formErrors';
  * server had already created. Duplicates are not blocked by design, so that is
  * a silent doubling of a whole spreadsheet.
  */
+/** Mirrors the backend (bulkClientImport.routes.js: MAX_FILE_SIZE_MB, isAcceptableUpload). */
+export const MAX_IMPORT_FILE_MB = 15;
+const IMPORT_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
+
+/**
+ * Why a picked file cannot be imported, or null when it can. Checked before
+ * any upload: the `accept` attribute is only a hint ("All files" bypasses it),
+ * and a 40MB PDF used to travel all the way to the server to be refused there.
+ */
+export const importFileProblem = (file: File): string | null => {
+  const name = file.name.toLowerCase();
+  if (!IMPORT_EXTENSIONS.some((ext) => name.endsWith(ext))) {
+    return 'Only .xlsx, .xls or .csv files can be imported.';
+  }
+  if (file.size === 0) return 'This file is empty.';
+  if (file.size > MAX_IMPORT_FILE_MB * 1024 * 1024) {
+    return `The file is larger than ${MAX_IMPORT_FILE_MB}MB. Split it into smaller files.`;
+  }
+  return null;
+};
+
 export type BulkEnrollmentStep = 'idle' | 'validating' | 'previewed' | 'importing' | 'completed' | 'unknown';
 
 /** Drives the Admin Panel flow: pick agent -> upload file -> validate/preview -> confirm import -> result.
@@ -26,6 +47,24 @@ export const useBulkEnrollment = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // The preview describes ONE file for ONE agent. The inputs stay editable in
+  // the 'previewed' step, and changing either used to leave the old preview on
+  // screen while Import committed the NEW selection — a file nobody reviewed,
+  // or the right file into the wrong agent's book. Any change drops the preview.
+  const selectAgent = useCallback((id: string) => {
+    setAgentId(id);
+    setPreviewResult(null);
+    setStep((s) => (s === 'previewed' ? 'idle' : s));
+  }, []);
+
+  const selectFile = useCallback((next: File | null) => {
+    const problem = next ? importFileProblem(next) : null;
+    setError(problem);
+    setFile(problem ? null : next);
+    setPreviewResult(null);
+    setStep((s) => (s === 'previewed' ? 'idle' : s));
+  }, []);
+
   const reset = useCallback(() => {
     setStep('idle');
     setFile(null);
@@ -37,6 +76,8 @@ export const useBulkEnrollment = () => {
   const validate = useCallback(async () => {
     if (!agentId) { setError('Select the agent these clients will be assigned to.'); return; }
     if (!file) { setError('Choose an .xlsx, .xls or .csv file.'); return; }
+    const problem = importFileProblem(file);
+    if (problem) { setError(problem); return; }
     setError(null);
     setStep('validating');
     setLoading(true);
@@ -53,7 +94,8 @@ export const useBulkEnrollment = () => {
   }, [agentId, file]);
 
   const confirmImport = useCallback(async () => {
-    if (!agentId || !file) return;
+    // Only ever commit what was previewed (selectAgent/selectFile clear it).
+    if (!agentId || !file || !previewResult) return;
     setError(null);
     setStep('importing');
     setLoading(true);
@@ -76,7 +118,7 @@ export const useBulkEnrollment = () => {
     } finally {
       setLoading(false);
     }
-  }, [agentId, file]);
+  }, [agentId, file, previewResult]);
 
   const downloadTemplate = useCallback(async () => {
     try {
@@ -99,7 +141,7 @@ export const useBulkEnrollment = () => {
   }, [importResult]);
 
   return {
-    step, agentId, setAgentId, file, setFile,
+    step, agentId, setAgentId: selectAgent, file, setFile: selectFile,
     previewResult, importResult, loading, error, setError,
     validate, confirmImport, downloadTemplate, downloadErrorReport, reset,
   };

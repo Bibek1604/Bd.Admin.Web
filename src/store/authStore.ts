@@ -1,12 +1,17 @@
 import { create } from 'zustand';
 import axios from 'axios';
 import { BASE_URL } from '../api/baseUrl';
-import { isTokenExpired } from '../utils/authUtils';
+import { decodeJWT, isTokenExpired } from '../utils/authUtils';
+import { requestNewAccessToken } from '../api/sessionRefresh';
 
 interface AuthState {
   token: string | null;
   user: any | null;
   isAuthenticated: boolean;
+  /** True while a reload with an expired access token tries the refresh cookie. */
+  isRestoring: boolean;
+  /** Try the bd_rt cookie once; on failure fall back to the login screen. */
+  restoreSession: () => Promise<void>;
   setAuth: (token: string, user: any, meta?: { refreshToken?: string; sessionId?: string | number; rawResponse?: unknown }) => void;
   /**
    * Silent local-only logout — clears client state without calling the server.
@@ -33,25 +38,41 @@ const clearLocalAuth = () => {
 export const useAuthStore = create<AuthState>((set) => {
   const initialToken = localStorage.getItem('adminToken');
 
-  // Proactive expiry check — refresh is via httpOnly bd_rt cookie, not localStorage
-  let effectiveToken = initialToken;
-  if (initialToken && isTokenExpired(initialToken)) {
-    clearLocalAuth();
-    effectiveToken = null;
-  }
+  const readStoredUser = () => {
+    const storedUser = sessionStorage.getItem('adminUser');
+    try {
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // An expired access token used to be wiped here, so any reload more than one
+  // access-token lifetime after sign-in landed on the login screen even though
+  // the 7-day bd_rt cookie was still valid. Keep the session pending instead and
+  // let restoreSession() try the cookie first.
+  const expired = !!initialToken && isTokenExpired(initialToken);
+  const effectiveToken = expired ? null : initialToken;
 
   return {
     token: effectiveToken,
-    user: (() => {
-      if (!effectiveToken) return null;
-      const storedUser = sessionStorage.getItem('adminUser');
-      try {
-        return storedUser ? JSON.parse(storedUser) : null;
-      } catch {
-        return null;
-      }
-    })(),
+    user: effectiveToken ? readStoredUser() : null,
     isAuthenticated: !!effectiveToken,
+    isRestoring: expired,
+
+    restoreSession: async () => {
+      try {
+        const token = await requestNewAccessToken();
+        const decoded = decodeJWT(token);
+        const user = readStoredUser() ?? (decoded ? { id: decoded.id, email: decoded.email, role: decoded.role } : null);
+        localStorage.setItem('adminToken', token);
+        if (user) sessionStorage.setItem('adminUser', JSON.stringify(user));
+        set({ token, user, isAuthenticated: true, isRestoring: false });
+      } catch {
+        clearLocalAuth();
+        set({ token: null, user: null, isAuthenticated: false, isRestoring: false });
+      }
+    },
 
     setAuth: (token: string, user: any, meta?: { refreshToken?: string; sessionId?: string | number; rawResponse?: unknown }) => {
       // Wipe any stale auth data before writing the new session so old
@@ -70,13 +91,13 @@ export const useAuthStore = create<AuthState>((set) => {
       if (meta?.rawResponse !== undefined) {
         sessionStorage.setItem('adminLoginResponse', JSON.stringify(meta.rawResponse));
       }
-      set({ token, user, isAuthenticated: true });
+      set({ token, user, isAuthenticated: true, isRestoring: false });
     },
 
     // Silent local-only logout — no API call.
     logout: () => {
       clearLocalAuth();
-      set({ token: null, user: null, isAuthenticated: false });
+      set({ token: null, user: null, isAuthenticated: false, isRestoring: false });
     },
 
     // Explicit sign-out — calls server then clears local state.
@@ -94,7 +115,7 @@ export const useAuthStore = create<AuthState>((set) => {
           .catch(() => {});
       }
       clearLocalAuth();
-      set({ token: null, user: null, isAuthenticated: false });
+      set({ token: null, user: null, isAuthenticated: false, isRestoring: false });
     },
   };
 });

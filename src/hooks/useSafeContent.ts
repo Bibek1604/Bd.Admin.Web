@@ -4,7 +4,7 @@
  */
 
 import { useMemo } from 'react';
-import { escapeHtml, sanitizeInput } from '../utils/sanitization';
+import { escapeHtml, sanitizeInput, sanitizeUrl } from '../utils/sanitization';
 
 /**
  * Hook to safely display user content
@@ -44,26 +44,7 @@ export const useSafeHTML = (
  * Only allows http, https, and relative URLs
  */
 export const useSafeUrl = (url: string | null | undefined): string => {
-  return useMemo(() => {
-    if (!url) return '';
-
-    const str = String(url).trim();
-
-    // Block dangerous protocols
-    if (str.match(/^(javascript|data|vbscript|file):/i)) {
-      return '';
-    }
-
-    // Allow only safe URLs
-    if (
-      str.startsWith('http://') ||
-      str.startsWith('https://') ||
-      str.startsWith('/')
-    ) {
-      return str;
-    }
-
-    // Default safe behavior
-    return '';
-  }, [url]);
+  // One rule for hooks and plain code — this used to be a copy of
+  // sanitizeUrl that drifted (it let "//evil.com" through too).
+  return useMemo(() => (url ? sanitizeUrl(String(url)) : ''), [url]);
 };

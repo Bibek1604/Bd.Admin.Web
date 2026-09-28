@@ -25,6 +25,19 @@ const AppModal: React.FC<AppModalProps> = ({
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = React.useId();
+  // Latest onClose without making it an effect dependency: an inline
+  // onClose is new on every parent render, and re-running the effect below
+  // moves focus back to the first field (see useDialogBehaviour in the agent
+  // app for the bug this caused there).
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  // While a submit is in flight the dialog must stay put: Esc or a backdrop
+  // click used to close it mid-save, so the admin never saw the result — or
+  // the validation error — of the request that was still running.
+  const loadingRef = useRef(loading);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+  const requestClose = () => { if (!loading) onClose(); };
 
   // Escape + scroll lock (as before), plus the three that were missing: focus
   // moves INTO the dialog on open, Tab is kept inside it, and focus returns to
@@ -48,7 +61,7 @@ const AppModal: React.FC<AppModalProps> = ({
     });
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key === 'Escape') { if (!loadingRef.current) onCloseRef.current(); return; }
       if (e.key !== 'Tab') return;
 
       const panel = panelRef.current;
@@ -73,7 +86,7 @@ const AppModal: React.FC<AppModalProps> = ({
         previouslyFocused.focus({ preventScroll: true });
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -88,7 +101,7 @@ const AppModal: React.FC<AppModalProps> = ({
       {/* Backdrop */}
       <div
         className="absolute inset-0 lg:left-[var(--admin-sidebar-w)] bg-slate-900/40 backdrop-blur-sm animate-modal-backdrop"
-        onClick={onClose}
+        onClick={requestClose}
         aria-hidden="true"
       />
 
@@ -106,8 +119,9 @@ const AppModal: React.FC<AppModalProps> = ({
           </div>
           <button
             type="button"
-            onClick={onClose}
-            className="-mr-1.5 shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            onClick={requestClose}
+            disabled={loading}
+            className="-mr-1.5 inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 pointer-coarse:min-h-11 pointer-coarse:min-w-11 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
             aria-label="Close"
           >
             <X size={20} />
@@ -131,8 +145,9 @@ const AppModal: React.FC<AppModalProps> = ({
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
-                onClick={onClose}
-                className="h-10 w-full rounded-[var(--radius-control)] border border-surface-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-50 sm:w-auto"
+                onClick={requestClose}
+                disabled={loading}
+                className="h-10 pointer-coarse:h-11 w-full rounded-[var(--radius-control)] border border-surface-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-50 sm:w-auto"
               >
                 {mode === 'details' ? 'Close' : 'Cancel'}
               </button>
@@ -140,7 +155,7 @@ const AppModal: React.FC<AppModalProps> = ({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand-600 px-5 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-60 sm:w-auto"
+                  className="flex h-10 pointer-coarse:h-11 w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-brand-600 px-5 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-60 sm:w-auto"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
@@ -252,7 +267,7 @@ export const ModalInput: React.FC<ModalInputProps> = ({ error, className, type, 
   const ac = autoComplete ?? (isPassword ? 'new-password' : 'off');
   const noMax = ['number', 'date', 'time', 'datetime-local', 'month', 'week', 'color', 'range', 'file', 'checkbox', 'radio', 'url'].includes(type || '');
   const max = maxLength ?? (noMax ? undefined : 256);
-  const cls = `w-full rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${isPassword ? 'pr-11' : ''} ${className || ''}`;
+  const cls = `w-full rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 pointer-coarse:py-3 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${isPassword ? 'pr-11' : ''} ${className || ''}`;
   if (!isPassword) return <input {...props} type={resolvedType} autoComplete={ac} maxLength={max} className={cls} />;
   return (
     <div className="relative">
@@ -261,7 +276,7 @@ export const ModalInput: React.FC<ModalInputProps> = ({ error, className, type, 
         type="button"
         tabIndex={-1}
         onClick={() => setReveal(v => !v)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
+        className="absolute right-3 top-1/2 -translate-y-1/2 pointer-coarse:right-0 pointer-coarse:flex pointer-coarse:h-11 pointer-coarse:w-11 pointer-coarse:items-center pointer-coarse:justify-center text-slate-400 transition-colors hover:text-slate-600"
         aria-label={reveal ? 'Hide password' : 'Show password'}
       >
         {reveal ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -275,7 +290,7 @@ export const ModalSelect: React.FC<ModalSelectProps> = ({ children, error, class
   <select
     {...props}
     title={props.title || props['aria-label'] || 'Select option'}
-    className={`w-full rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:bg-white disabled:cursor-not-allowed disabled:bg-surface-100 disabled:text-slate-400 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${className || ''}`}
+    className={`w-full rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 pointer-coarse:py-3 pointer-coarse:min-h-11 text-sm text-slate-700 outline-none transition-colors focus:bg-white disabled:cursor-not-allowed disabled:bg-surface-100 disabled:text-slate-400 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${className || ''}`}
   >
     {children}
   </select>
@@ -286,7 +301,7 @@ export const ModalTextarea: React.FC<ModalTextareaProps> = ({ error, className, 
   <textarea
     {...props}
     maxLength={maxLength ?? 5000}
-    className={`w-full resize-none rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${className || ''}`}
+    className={`w-full resize-none rounded-[var(--radius-control)] border bg-surface-50 px-3 py-2.5 pointer-coarse:py-3 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? 'border-rose-400 bg-rose-50 focus:border-rose-500' : 'border-surface-200 focus:border-brand-500'} ${className || ''}`}
   />
 );
 

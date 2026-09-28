@@ -65,7 +65,7 @@ const Pagination: React.FC<PaginationProps> = ({
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
             aria-label="Rows per page"
-            className="h-8 cursor-pointer rounded-[var(--radius-control)] border border-surface-200 bg-white pl-2.5 pr-7 text-[13px] text-slate-600 outline-none transition-colors hover:bg-surface-50 focus:border-brand-500"
+            className="h-8 pointer-coarse:h-11 cursor-pointer rounded-[var(--radius-control)] border border-surface-200 bg-white pl-2.5 pr-7 text-[13px] text-slate-600 outline-none transition-colors hover:bg-surface-50 focus:border-brand-500"
           >
             {pageSizeOptions.map((opt) => (
               <option key={opt} value={opt}>
@@ -83,7 +83,7 @@ const Pagination: React.FC<PaginationProps> = ({
           onClick={() => canPrev && onPageChange(page - 1)}
           disabled={!canPrev}
           aria-label="Previous page"
-          className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] border border-surface-200 bg-white text-slate-500 transition-colors hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-8 w-8 pointer-coarse:h-11 pointer-coarse:w-11 items-center justify-center rounded-[var(--radius-control)] border border-surface-200 bg-white text-slate-500 transition-colors hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronLeft size={15} />
         </button>
@@ -99,7 +99,7 @@ const Pagination: React.FC<PaginationProps> = ({
               type="button"
               onClick={() => onPageChange(p)}
               aria-current={p === page ? 'page' : undefined}
-              className={`flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-control)] px-2.5 text-[13px] transition-colors ${
+              className={`flex h-8 min-w-8 pointer-coarse:h-11 pointer-coarse:min-w-11 items-center justify-center rounded-[var(--radius-control)] px-2.5 text-[13px] transition-colors ${
                 p === page
                   ? 'bg-brand-600 font-medium text-white'
                   : 'border border-surface-200 bg-white text-slate-600 hover:bg-surface-50'
@@ -115,7 +115,7 @@ const Pagination: React.FC<PaginationProps> = ({
           onClick={() => canNext && onPageChange(page + 1)}
           disabled={!canNext}
           aria-label="Next page"
-          className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] border border-surface-200 bg-white text-slate-500 transition-colors hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-8 w-8 pointer-coarse:h-11 pointer-coarse:w-11 items-center justify-center rounded-[var(--radius-control)] border border-surface-200 bg-white text-slate-500 transition-colors hover:bg-surface-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronRight size={15} />
         </button>

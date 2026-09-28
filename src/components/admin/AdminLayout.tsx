@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
-  Briefcase, Bell, UserCheck, LayoutDashboard, LogOut, Menu, X, ChevronLeft, ChevronRight, Users,
+  Briefcase, Bell, UserCheck, LayoutDashboard, LogOut, Menu, X, ChevronLeft, ChevronRight, Users, ClipboardList, Globe, Inbox,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { BrandLogo } from '../BrandLogo';
@@ -13,6 +13,9 @@ const NAV_ITEMS = [
   { to: '/companies', label: 'Companies', icon: Briefcase },
   { to: '/notifications', label: 'Notifications', icon: Bell },
   { to: '/clients/bulk-enrollment', label: 'Bulk Enrollment', icon: Users },
+  { to: '/requests', label: 'Requests', icon: ClipboardList },
+  { to: '/messages', label: 'Messages', icon: Inbox },
+  { to: '/website', label: 'Website', icon: Globe },
 ];
 
 const AdminLayout: React.FC = () => {
@@ -107,7 +110,7 @@ const AdminLayout: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="-ml-1 rounded-[var(--radius-control)] p-2 text-slate-600 transition-colors hover:bg-surface-100 lg:hidden"
+              className="-ml-1 rounded-[var(--radius-control)] p-2 pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:min-w-11 pointer-coarse:items-center pointer-coarse:justify-center text-slate-600 transition-colors hover:bg-surface-100 lg:hidden"
               aria-label="Open sidebar"
             >
               <Menu size={18} />
