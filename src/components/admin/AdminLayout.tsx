@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
-  Briefcase, Bell, UserCheck, LayoutDashboard, LogOut, Menu, X, ChevronLeft, ChevronRight, Users, ClipboardList, Globe, Inbox,
+  Briefcase, BookOpen, Bell, UserCheck, LayoutDashboard, LogOut, Menu, X, ChevronLeft, ChevronRight, Users, ClipboardList, Globe, Inbox,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { BrandLogo } from '../BrandLogo';
@@ -11,6 +11,9 @@ const NAV_ITEMS = [
   { to: '/overview', label: 'Overview', icon: LayoutDashboard },
   { to: '/agents', label: 'Agents', icon: UserCheck },
   { to: '/companies', label: 'Companies', icon: Briefcase },
+  { to: '/calculator', label: 'Premium Calculator', icon: ClipboardList },
+  { to: '/plans', label: 'LIC Plans', icon: BookOpen },
+  { to: '/policy-revival', label: 'Insurer Revival', icon: ClipboardList },
   { to: '/notifications', label: 'Notifications', icon: Bell },
   { to: '/clients/bulk-enrollment', label: 'Bulk Enrollment', icon: Users },
   { to: '/requests', label: 'Requests', icon: ClipboardList },
