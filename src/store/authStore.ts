@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { clearServiceWorkerRuntime } from '../pwa/pwa';
 import axios from 'axios';
 import { BASE_URL } from '../api/baseUrl';
 import { decodeJWT, isTokenExpired } from '../utils/authUtils';
@@ -33,6 +34,8 @@ const clearLocalAuth = () => {
   localStorage.removeItem('adminSessionId');
   sessionStorage.removeItem('adminLoginResponse');
   sessionStorage.removeItem('adminUser');
+  // The service worker caches no admin data; this sweeps anything non-static anyway.
+  clearServiceWorkerRuntime();
 };
 
 export const useAuthStore = create<AuthState>((set) => {

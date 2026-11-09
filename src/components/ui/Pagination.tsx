@@ -76,8 +76,9 @@ const Pagination: React.FC<PaginationProps> = ({
         </div>
       </div>
 
-      {/* Page navigation */}
-      <div className="flex items-center gap-1">
+      {/* Page navigation — wraps on phones, where the 44px touch targets
+          (pointer-coarse) no longer fit seven pages in one row. */}
+      <div className="flex flex-wrap items-center gap-1">
         <button
           type="button"
           onClick={() => canPrev && onPageChange(page - 1)}

@@ -1,0 +1,28 @@
+{
+  "id": "/?app=beemadiary-admin",
+  "name": "BeemaDiary Admin",
+  "short_name": "BD Admin",
+  "description": "BeemaDiary administration console: agents, companies, plans, requests and notifications.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/overview?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0b3a66",
+  "theme_color": "#0b3a66",
+  "categories": ["business", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Overview", "url": "/overview?source=pwa-shortcut", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Agents", "url": "/agents?source=pwa-shortcut", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Requests", "url": "/requests?source=pwa-shortcut", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

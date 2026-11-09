@@ -57,7 +57,11 @@ export const authService = {
     try {
       const response = await axios.post(
         `${BASE_URL}${ADMIN_ROUTES.login.replace(/^\//, '')}`,
-        { email, password }
+        { email, password },
+        // Without credentials the browser discards the cross-origin Set-Cookie
+        // for the httpOnly bd_rt refresh cookie, so silent refresh could never
+        // work and every admin was signed out when the 15-minute token expired.
+        { withCredentials: true }
       );
 
       const d = response.data;

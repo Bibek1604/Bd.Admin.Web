@@ -109,7 +109,7 @@ const AppModal: React.FC<AppModalProps> = ({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className={`relative flex w-full ${maxWidth} max-h-[88vh] flex-col overflow-hidden rounded-[var(--radius-panel)] bg-white shadow-[0_16px_48px_-12px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 animate-modal-panel focus:outline-none`}
+        className={`relative flex w-full ${maxWidth} max-h-[88dvh] flex-col overflow-hidden rounded-[var(--radius-panel)] bg-white shadow-[0_16px_48px_-12px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 animate-modal-panel focus:outline-none`}
       >
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between gap-4 px-6 pt-5 pb-3">

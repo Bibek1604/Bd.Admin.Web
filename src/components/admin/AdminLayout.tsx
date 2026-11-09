@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { BrandLogo } from '../BrandLogo';
+import { InstallAppButton } from '../../pwa/PwaPrompts';
 
 /** Sidebar entries are the routes — the URL is the single source of truth. */
 const NAV_ITEMS = [
@@ -38,7 +39,7 @@ const AdminLayout: React.FC = () => {
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     [
-      'relative flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-sm transition-colors',
+      'relative flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 pointer-coarse:min-h-11 text-sm transition-colors',
       isCollapsed ? 'justify-center' : '',
       isActive
         ? 'bg-brand-50 font-medium text-brand-700'
@@ -56,7 +57,7 @@ const AdminLayout: React.FC = () => {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-surface-200 bg-white transition-[width,transform] duration-200 lg:static lg:translate-x-0
+        className={`fixed inset-y-0 left-0 z-50 flex h-dvh flex-col border-r border-surface-200 bg-white pb-[env(safe-area-inset-bottom)] transition-[width,transform] duration-200 lg:static lg:translate-x-0
           ${isCollapsed ? 'w-20' : 'w-64'}
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
@@ -73,7 +74,7 @@ const AdminLayout: React.FC = () => {
             </button>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="p-2 text-slate-400 hover:text-slate-600 lg:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-slate-400 hover:text-slate-600 lg:hidden"
               aria-label="Close sidebar"
             >
               <X size={18} />
@@ -99,7 +100,7 @@ const AdminLayout: React.FC = () => {
         <div className="shrink-0 border-t border-surface-200 p-3">
           <button
             onClick={signOut}
-            className={`flex w-full items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-700 ${isCollapsed ? 'justify-center' : ''}`}
+            className={`flex w-full items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 pointer-coarse:min-h-11 text-sm text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-700 ${isCollapsed ? 'justify-center' : ''}`}
             title={isCollapsed ? 'Sign out' : undefined}
           >
             <LogOut size={17} className="shrink-0" />
@@ -108,8 +109,8 @@ const AdminLayout: React.FC = () => {
         </div>
       </aside>
 
-      <main className="flex h-screen min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-surface-200 bg-white px-5 lg:px-8">
+      <main className="flex h-dvh min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-surface-200 bg-white px-4 sm:px-5 lg:px-8">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -122,6 +123,7 @@ const AdminLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <InstallAppButton />
             <span className="hidden text-sm text-slate-600 sm:block">{user?.username || 'Admin'}</span>
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-xs font-medium text-white">
               {(user?.username?.[0] || 'A').toUpperCase()}
@@ -129,7 +131,7 @@ const AdminLayout: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 lg:p-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5 lg:p-8 custom-scrollbar">
           <Outlet />
         </div>
       </main>
