@@ -30,6 +30,9 @@ const BulkEnrollmentPage = lazy(() => import('./modules/admin/clients/BulkEnroll
 const RequestsPage = lazy(() => import('./modules/admin/requests/RequestsPage'));
 const WebsitePage = lazy(() => import('./modules/admin/website/WebsitePage'));
 const MessagesPage = lazy(() => import('./modules/admin/website/MessagesPage'));
+const PremiumCalculatorPage = lazy(() => import('./modules/admin/PremiumCalculatorPage'));
+const PlansPage = lazy(() => import('./modules/admin/plans/PlansPage'));
+const PolicyRevivalPage = lazy(() => import('./modules/admin/PolicyRevivalPage'));
 
 // Simple loading indicator
 const LoadingScreen = () => (
@@ -92,6 +95,9 @@ function App() {
                 <Route path="/requests" element={<RequestsPage />} />
                 <Route path="/website" element={<WebsitePage />} />
                 <Route path="/messages" element={<MessagesPage />} />
+                <Route path="/calculator" element={<PremiumCalculatorPage />} />
+                <Route path="/plans" element={<PlansPage />} />
+                <Route path="/policy-revival" element={<PolicyRevivalPage />} />
               </Route>
               <Route path="*" element={<Navigate to="/overview" replace />} />
             </Routes>
