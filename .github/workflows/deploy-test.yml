@@ -16,14 +16,13 @@ jobs:
       - uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           command_timeout: 20m
           script: |
             set -e
-            export PATH=/www/server/nodejs/v24.19.0/bin:$PATH
+            export PATH="/www/server/nodejs/v24.19.0/bin:$PATH"
             export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             cd /www/wwwroot/testbeemadiary/admin
             git fetch origin development
